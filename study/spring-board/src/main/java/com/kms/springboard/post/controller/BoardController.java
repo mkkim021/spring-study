@@ -22,7 +22,7 @@ public class BoardController {
     // Main 폼
     @GetMapping
     public String mainForm() {
-        return "posts/index";
+        return "index";
     }
 
     // 0) List
