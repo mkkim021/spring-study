@@ -4,6 +4,7 @@ package com.kms.springboard.post.service;
 import com.kms.springboard.post.dto.BoardDto;
 import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.repository.BoardRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,6 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardEntity save(BoardDto boardDto) {
         BoardEntity buildEntity = BoardEntity.builder()
-                .id(boardDto.getId())
                 .title(boardDto.getTitle())
                 .writer(boardDto.getWriter())
                 .content(boardDto.getContent())
@@ -38,9 +38,10 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BoardDto getBoard(Long boardId) {
-        Optional<BoardEntity> boardEntityWrapper = boardRepository.findById(boardId);
-        BoardEntity board = boardEntityWrapper.get();
+        BoardEntity board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
 
         BoardDto boardDto = BoardDto.builder()
                 .id(board.getId())
@@ -60,10 +61,10 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public void update(Long id, BoardDto updateBoardDto) {
-        BoardDto board = getBoard(id);
-        board.setTitle(updateBoardDto.getTitle());
-        board.setContent(updateBoardDto.getContent());
-        BoardEntity updateBoard = save(board);
-        boardRepository.save(updateBoard);
+        BoardEntity board = boardRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
+        board.update(updateBoardDto.getTitle(), updateBoardDto.getContent());
+        // 이러면 업데이트된 정보를 Transactional 범위 내에서 더티체킹으로 자동 반영
+        // 이중 save할 필요없음
     }
 }

@@ -4,9 +4,11 @@ import com.kms.springboard.post.dto.BoardDto;
 import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.service.BoardService;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +41,10 @@ public class BoardController {
     }
 
     @PostMapping("/board/save")
-    public String save(@ModelAttribute BoardDto boardDto) {
+    public String save(@Valid @ModelAttribute BoardDto boardDto, BindingResult bindingResult) {
+        if(bindingResult.hasErrors()) {
+            return "posts/write";
+        }
         boardService.save(boardDto);
         return "redirect:/api/board";
 
@@ -59,7 +64,14 @@ public class BoardController {
         return "posts/update";
     }
     @PostMapping("/board/update/{boardId}")
-    public String edit(@PathVariable Long boardId, @ModelAttribute BoardDto boardDto) {
+    public String edit(@PathVariable Long boardId,
+                       @Valid @ModelAttribute BoardDto boardDto,
+                       BindingResult bindingResult,
+                       Model model) {
+        if(bindingResult.hasErrors()) {
+            model.addAttribute("board", boardDto);
+            return "posts/update";
+        }
         boardService.update(boardId,boardDto);
         return "redirect:/api/board";
     }
@@ -82,7 +94,9 @@ public class BoardController {
 
     @PostConstruct
     public void init(){
-
+        if (!boardService.findByAll().isEmpty()) {
+            return;
+        }
         String title = "title";
         String content = "content";
         String writer = "writer";

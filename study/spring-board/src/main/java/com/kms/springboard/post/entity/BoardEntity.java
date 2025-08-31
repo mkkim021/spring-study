@@ -22,4 +22,8 @@ public class BoardEntity {
     private String writer;
     private LocalDateTime createDate;
 
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }
