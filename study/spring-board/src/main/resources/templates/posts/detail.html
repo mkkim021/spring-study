@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세보기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .board-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            width: 100px;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .button-group a, .button-group form {
+            display: inline-block;
+        }
+
+        .button-group button, .button-group a button {
+            background-color: #28a745;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .button-group button:hover {
+            background-color: #218838;
+        }
+
+        .button-group a button {
+            background-color: #007BFF;
+        }
+
+        .button-group a button:hover {
+            background-color: #0069d9;
+        }
+    </style>
+</head>
+<body>
+<div class="board-container">
+    <h1>게시글 상세보기</h1>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <td th:text="${board.id}"></td>
+        </tr>
+        <tr>
+            <th>제목</th>
+            <td th:text="${board.title}"></td>
+        </tr>
+        <tr>
+            <th>작성자</th>
+            <td th:text="${board.writer}"></td>
+        </tr>
+        <tr>
+            <th>내용</th>
+            <td th:text="${board.content}"></td>
+        </tr>
+    </table>
+
+    <div class="button-group">
+        <a th:href="@{/api/board}"><button type="button">목록으로</button></a>
+        <a th:href="@{/api/board/update/{boardId}(boardId=${board.id})}"><button type="button">게시글 수정</button></a>
+        <form th:action="@{/api/board/delete/{boardId}(boardId=${board.id})}" method="post" style="display:inline">
+            <button type="submit">게시글 삭제</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
