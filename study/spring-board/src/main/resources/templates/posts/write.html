@@ -86,6 +86,7 @@
     <h1>새 글 작성</h1>
 
     <form th:action="@{/api/board/save}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <div class="form-group">
             <label>제목:</label>
             <input type="text" name="title" required />
