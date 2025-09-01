@@ -1,9 +1,9 @@
-package hello.board.member.service;
+package com.kms.springboard.member.service;
 
-import hello.board.member.dto.LoginDto;
-import hello.board.member.dto.MemberDto;
-import hello.board.member.entity.MemberEntity;
-import hello.board.member.repository.MemberRepository;
+
+import com.kms.springboard.member.dto.LoginDto;
+import com.kms.springboard.member.dto.MemberDto;
+import com.kms.springboard.member.entity.MemberEntity;
 import lombok.RequiredArgsConstructor;
 
 

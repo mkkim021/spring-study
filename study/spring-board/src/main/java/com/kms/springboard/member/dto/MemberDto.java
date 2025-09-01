@@ -1,4 +1,4 @@
-package hello.board.member.dto;
+package com.kms.springboard.member.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

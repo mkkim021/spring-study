@@ -1,6 +1,6 @@
-package hello.board.member.repository;
+package com.kms.springboard.member.repository;
 
-import hello.board.member.entity.MemberEntity;
+import com.kms.springboard.member.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
