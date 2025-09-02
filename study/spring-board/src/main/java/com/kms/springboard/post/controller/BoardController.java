@@ -1,9 +1,11 @@
 package com.kms.springboard.post.controller;
 
+import com.kms.springboard.member.dto.MemberDto;
 import com.kms.springboard.post.dto.BoardDto;
 import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.service.BoardService;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -18,6 +20,12 @@ import java.util.List;
 @RequestMapping("/api")
 public class BoardController {
     private final BoardService boardService;
+
+    private static MemberDto getMemberDto(Model model, HttpSession session) {
+        MemberDto loginMember = (MemberDto) session.getAttribute("loginMember");
+        model.addAttribute("loginMember", loginMember);
+        return loginMember;
+    }
 
     // Main 폼
     @GetMapping

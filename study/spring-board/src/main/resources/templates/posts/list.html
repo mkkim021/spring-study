@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <title>게시판 목록</title>
@@ -73,12 +74,33 @@
 </head>
 <body>
 <div class="board-container">
+
+    <!-- 로그인 상태에 따른 메뉴 -->
+    <div class="d-flex justify-content-between">
+        <!-- 로그인 한 사용자 -->
+        <div sec:authorize="isAuthenticated()">
+            <span>사용자: <span sec:authentication="name"></span></span>
+            <form th:action="@{/users/logout}" method="post" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-link">로그아웃</button>
+            </form>
+        </div>
+
+        <!-- 로그인하지 않은 사용자 -->
+        <div sec:authorize="isAnonymous()">
+            <a th:href="@{/users/login}">로그인</a> |
+            <a th:href="@{/users/joinMember}">회원가입</a>
+        </div>
+    </div>
+
     <h1>게시글 목록</h1>
 
-    <div class="button-container">
+    <!-- 글 작성 버튼 -->
+    <div class="button-container" sec:authorize="isAuthenticated()">
         <a th:href="@{/api/board/save}"><button type="button">글 작성</button></a>
     </div>
 
+    <!-- 게시글 테이블 -->
     <table>
         <tr>
             <th>ID</th>
@@ -87,7 +109,9 @@
             <th>내용</th>
         </tr>
         <tr th:each="board : ${boardList}">
-            <td><a th:href="@{/api/board/{boardId}(boardId=${board.id})}" th:text="${board.id}"></a></td>
+            <td>
+                <a th:href="@{/api/board/{boardId}(boardId=${board.id})}" th:text="${board.id}"></a>
+            </td>
             <td th:text="${board.title}"></td>
             <td th:text="${board.writer}"></td>
             <td th:text="${board.content}"></td>
