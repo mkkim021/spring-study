@@ -75,6 +75,9 @@
 <body>
 <div class="login-container">
     <h1>로그인</h1>
+    <p th:if="${param.error}" style="color:#d9534f; text-align: center; margin:-10px 0 15px;">
+        아이디 또는 비밀번호가 올바르지 않습니다.
+    </p>
     <!-- LoginDto와 바인딩 -->
     <form th:action="@{/users/login}" th:object="${loginDto}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -92,7 +95,7 @@
         </div>
     </form>
     <div class="signup-link">
-        아직 회원이 아니신가요? <a th:href="@{/signup}">회원가입</a>
+        아직 회원이 아니신가요? <a th:href="@{/users/joinMember}">회원가입</a>
     </div>
 </div>
 </body>

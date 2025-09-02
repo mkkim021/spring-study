@@ -25,10 +25,16 @@ public class SecurityConfig {
                         .loginPage("/users/login")
                         .loginProcessingUrl("/users/login")
                         .defaultSuccessUrl("/api/board",true)
-                        .failureUrl("/users/login")
+                        .failureUrl("/users/login?error=true")
                         .permitAll()
                 )
+                .logout((logout) -> logout
+                        .logoutUrl("/users/logout")
+                        .logoutSuccessUrl("/api")
+                        .invalidateHttpSession(true))
                 .csrf(Customizer.withDefaults());
+
+
         return http.build();
     }
     @Bean
