@@ -20,6 +20,7 @@ public class BoardEntity {
     private String title;
     private String content;
     private String writer;
+    private String password;
     private LocalDateTime createDate;
 
     public void update(String title, String content) {

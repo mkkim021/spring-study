@@ -11,6 +11,7 @@ public class BoardDto {
     private Long id;
     private String title;
     private String writer;
+    private String password;
     private String content;
 
 

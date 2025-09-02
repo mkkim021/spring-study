@@ -101,7 +101,10 @@
             <label>내용:</label>
             <textarea name="content" rows="6" required></textarea>
         </div>
-
+        <div class="form-group">
+            <th><label th:for="password">비밀번호</label></th>
+            <input type="text" name="password" required/>
+        </div>
         <div class="button-group">
             <button type="submit" class="submit-btn">작성 완료</button>
             <button type="button" class="cancel-btn" th:onclick="|location.href='@{/api/board}'|">취소</button>

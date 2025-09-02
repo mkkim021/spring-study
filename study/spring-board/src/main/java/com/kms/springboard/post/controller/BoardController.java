@@ -21,11 +21,7 @@ import java.util.List;
 public class BoardController {
     private final BoardService boardService;
 
-    private static MemberDto getMemberDto(Model model, HttpSession session) {
-        MemberDto loginMember = (MemberDto) session.getAttribute("loginMember");
-        model.addAttribute("loginMember", loginMember);
-        return loginMember;
-    }
+
 
     // Main 폼
     @GetMapping
@@ -80,8 +76,14 @@ public class BoardController {
             model.addAttribute("board", boardDto);
             return "posts/update";
         }
-        boardService.update(boardId,boardDto);
+        Integer isValid = boardService.passwordVerify(boardId, boardDto.getPassword(), boardDto.getWriter());
+        if(isValid == 1){
+            boardService.update(boardId,boardDto);
+        }
         return "redirect:/api/board";
+
+
+
     }
 
     //4) Delete
@@ -90,6 +92,8 @@ public class BoardController {
         boardService.delete(boardId);
         return "redirect:/api/board";
     }
+
+
 
 
 
