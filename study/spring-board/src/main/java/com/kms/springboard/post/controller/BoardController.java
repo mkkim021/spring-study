@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.security.InvalidParameterException;
 import java.security.Principal;
 import java.util.List;
@@ -45,10 +46,16 @@ public class BoardController {
     }
 
     @PostMapping("/board/save")
-    public String save(@Valid @ModelAttribute BoardDto boardDto, BindingResult bindingResult) {
+    public String save(@Valid @ModelAttribute BoardDto boardDto,
+                       BindingResult bindingResult,
+                       Principal principal) {
         if(bindingResult.hasErrors()) {
             return "posts/write";
         }
+        if(principal != null) {
+            boardDto.setWriter(principal.getName());
+        }
+
         boardService.save(boardDto);
         return "redirect:/api/board";
 
@@ -71,23 +78,19 @@ public class BoardController {
     public String edit(@PathVariable Long boardId,
                        @Valid @ModelAttribute BoardDto boardDto,
                        BindingResult bindingResult,
-                       Model model, Principal principal) {
+                       Principal principal) {
         if(bindingResult.hasErrors()) {
-            model.addAttribute("board", boardDto);
             return "posts/update";
         }
         try{
-            boolean ok = boardService.verifyPassword(
-                    boardId, boardDto.getPassword(),
-                    principal!=null?principal.getName():null);
-            if(!ok) {
-                bindingResult.rejectValue("password","mismatch","비밀번호가 일치하지 않습니다");
-                model.addAttribute("board", boardDto);
-            }
-            boardService.update(boardId, boardDto);
-        }catch(InvalidParameterException e){
-            bindingResult.rejectValue("password", "missmatch", e.getMessage());
-            model.addAttribute("board", boardDto);
+           boardService.updateWithPassword(
+                   boardId,
+                   boardDto,
+                   boardDto.getPassword(),
+                   principal !=null ? principal.getName():null
+           );
+        }catch(AccessDeniedException e){
+            bindingResult.rejectValue("password", "mismatch", e.getMessage());
             return "posts/update";
         }
         return "redirect:/api/board";

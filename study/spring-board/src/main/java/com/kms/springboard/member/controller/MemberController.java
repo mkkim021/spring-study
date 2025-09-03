@@ -26,17 +26,17 @@ public class MemberController {
 
     @PostMapping("/joinMember")
     public String joinMember(@Valid @ModelAttribute(name = "member") MemberDto memberDto,
-                             BindingResult bindingResult, Model model) {
+                             BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return "users/join";
         }
         try{
             memberService.saveDto(memberDto);
         }catch (IllegalStateException e) {
-            bindingResult.rejectValue("username", "duplicate", "이미 사용 중인 사용자명입니다");
+            bindingResult.rejectValue("userId", "duplicate", "이미 사용 중인 아이디입니다");
             return "users/join";
         }catch (DataIntegrityViolationException e) {
-            bindingResult.rejectValue("username", "duplicate", "이미 사용 중인 사용자입니다");
+            bindingResult.rejectValue("userId", "duplicate", "이미 사용 중인 사용자입니다");
             return "users/join";
         }
         return "redirect:/api";

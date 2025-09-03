@@ -31,33 +31,39 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberEntity saveDto(MemberDto memberDto) {
-        MemberEntity existing = memberRepository.findByUsername(memberDto.getUsername());
+        MemberEntity existing = memberRepository.findByUserId(memberDto.getUserId());
         if(existing != null) {
-            throw new IllegalStateException("이미 존재하는 사용자입니다");
+            throw new IllegalStateException("이미 존재하는 아이디입니다");
         }
         String encoded = passwordEncoder.encode(memberDto.getPassword());
         MemberEntity member = MemberEntity.builder()
+                .userId(memberDto.getUserId())
                 .username(memberDto.getUsername())
+                .email(memberDto.getEmail())
                 .password(encoded)
                 .build();
         return memberRepository.save(member);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isLogin(LoginDto loginDto) {
-        String username = loginDto.getUsername();
+        String userId = loginDto.getUserId();
         String password = loginDto.getPassword();
-        MemberEntity byUsername = memberRepository.findByUsername(username);
+        MemberEntity findUserId = memberRepository.findByUserId(userId);
 
-        if(byUsername == null) {
+        if(password == null || password.isBlank()) {
             return false;
         }
-        return passwordEncoder.matches(password, byUsername.getPassword());
+        if(findUserId == null) {
+            return false;
+        }
+        return passwordEncoder.matches(password, findUserId.getPassword());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public MemberEntity findByUsername(String username) {
-        return memberRepository.findByUsername(username);
+    public MemberEntity findByUsername(String userId) {
+        return memberRepository.findByUserId(userId);
     }
 }
