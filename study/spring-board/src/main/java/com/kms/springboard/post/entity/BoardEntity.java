@@ -20,10 +20,16 @@ public class BoardEntity {
     private String title;
     private String content;
     private String writer;
+    @Column(name="password", nullable = false, length = 60)
+    private String password;
     private LocalDateTime createDate;
 
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
+
+    }
+    public void updatePassword(String password) {
+        this.password = password;
     }
 }
