@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.security.InvalidParameterException;
+import java.security.Principal;
 import java.util.List;
 
 
@@ -66,8 +67,13 @@ public class BoardServiceImpl implements BoardService {
 
 
     @Override
-    public void delete(Long id) {
-        boardRepository.deleteById(id);
+    public void delete(Long id, String writer) {
+        BoardEntity boardEntity = boardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
+        if(!boardEntity.getWriter().equals(writer)) {
+            throw new InvalidParameterException("작성자만 게시글을 삭제할 수 있습니다");
+        }
+        boardRepository.delete(boardEntity);
+
 
     }
 
@@ -81,20 +87,28 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean verifyPassword(Long boardId, String rawPassword, String username) {
+
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
-        
+
         // 작성자 검증
-        if(!boardEntity.getWriter().equals(username)) {
+        if (username == null || !boardEntity.getWriter().equals(username)) {
             throw new InvalidParameterException("해당 게시글의 작성자가 아닙니다");
         }
         //비밀번호 검증
-       return passwordEncoder.matches(rawPassword, boardEntity.getPassword());
+        boolean matches = isPasswordHashed(boardEntity.getPassword())
+                ? passwordEncoder.matches(rawPassword, boardEntity.getPassword())
+                : boardEntity.getPassword().equals(rawPassword);
+        if(!matches){
+            throw new InvalidParameterException("비밀번호가 일치하지 않습니다");
+        }
+        return true;
     }
 
     @Override
-    public void updatePassword(Long boardId, BoardDto updateBoardDto, String rawPassword, String username) {
+    public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPassword, String username) {
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
         if (!boardEntity.getWriter().equals(username)) {

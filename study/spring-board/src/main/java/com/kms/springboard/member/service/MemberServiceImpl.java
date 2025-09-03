@@ -21,6 +21,10 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberEntity save(MemberEntity member) {
+        String pw = member.getPassword();
+        if(pw == null || !pw.startsWith("$2")){
+            throw new IllegalArgumentException("Password must be encoded before save()");
+        }
         return memberRepository.save(member);
 
     }

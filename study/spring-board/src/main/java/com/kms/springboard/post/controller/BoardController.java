@@ -77,9 +77,13 @@ public class BoardController {
             return "posts/update";
         }
         try{
-            boardService.verifyPassword(
+            boolean ok = boardService.verifyPassword(
                     boardId, boardDto.getPassword(),
                     principal!=null?principal.getName():null);
+            if(!ok) {
+                bindingResult.rejectValue("password","mismatch","비밀번호가 일치하지 않습니다");
+                model.addAttribute("board", boardDto);
+            }
             boardService.update(boardId, boardDto);
         }catch(InvalidParameterException e){
             bindingResult.rejectValue("password", "missmatch", e.getMessage());
@@ -91,8 +95,8 @@ public class BoardController {
 
     //4) Delete
     @PostMapping("/board/delete/{boardId}")
-    public String delete(@PathVariable Long boardId) {
-        boardService.delete(boardId);
+    public String delete(@PathVariable Long boardId, Principal principal) {
+        boardService.delete(boardId,principal.getName());
         return "redirect:/api/board";
     }
 
@@ -107,21 +111,6 @@ public class BoardController {
      * 테스트 추가 데이터
      */
 
-    @PostConstruct
-    public void init(){
-        if (!boardService.findByAll().isEmpty()) {
-            return;
-        }
-        String title = "title";
-        String content = "content";
-        String writer = "writer";
-        BoardDto boardDto = new BoardDto();
 
-        boardDto.setTitle(title);
-        boardDto.setContent(content);
-        boardDto.setWriter(writer);
-        boardService.save(boardDto);
-
-    }
 
 }
