@@ -1,11 +1,9 @@
 package com.kms.springboard.post.controller;
 
-import com.kms.springboard.member.dto.MemberDto;
 import com.kms.springboard.post.dto.BoardDto;
 import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.service.BoardService;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -13,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.InvalidParameterException;
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -71,19 +71,22 @@ public class BoardController {
     public String edit(@PathVariable Long boardId,
                        @Valid @ModelAttribute BoardDto boardDto,
                        BindingResult bindingResult,
-                       Model model) {
+                       Model model, Principal principal) {
         if(bindingResult.hasErrors()) {
             model.addAttribute("board", boardDto);
             return "posts/update";
         }
-        Integer isValid = boardService.passwordVerify(boardId, boardDto.getPassword(), boardDto.getWriter());
-        if(isValid == 1){
-            boardService.update(boardId,boardDto);
+        try{
+            boardService.verifyPassword(
+                    boardId, boardDto.getPassword(),
+                    principal!=null?principal.getName():null);
+            boardService.update(boardId, boardDto);
+        }catch(InvalidParameterException e){
+            bindingResult.rejectValue("password", "missmatch", e.getMessage());
+            model.addAttribute("board", boardDto);
+            return "posts/update";
         }
         return "redirect:/api/board";
-
-
-
     }
 
     //4) Delete

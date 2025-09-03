@@ -16,5 +16,6 @@ public interface BoardService {
 
     void delete(Long id);
     void update(Long id,BoardDto updateBoardDto);
-    Integer passwordVerify(Long id, String password, String username);
+    boolean verifyPassword(Long boardId, String rawPassword, String username);
+    void updatePassword(Long boardId, BoardDto updateBoardDto, String rawPassword, String username);
 }

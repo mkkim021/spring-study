@@ -44,7 +44,11 @@ public class MemberServiceImpl implements MemberService {
         String username = loginDto.getUsername();
         String password = loginDto.getPassword();
         MemberEntity byUsername = memberRepository.findByUsername(username);
-        return byUsername != null && password.equals(byUsername.getPassword());
+
+        if(byUsername == null) {
+            return false;
+        }
+        return passwordEncoder.matches(password, byUsername.getPassword());
     }
 
     @Override

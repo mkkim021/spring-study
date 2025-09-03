@@ -1,5 +1,6 @@
 package com.kms.springboard.post.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @NoArgsConstructor
@@ -11,6 +12,7 @@ public class BoardDto {
     private Long id;
     private String title;
     private String writer;
+    @NotBlank(message = "비밀번호를 입력해주세요")
     private String password;
     private String content;
 
