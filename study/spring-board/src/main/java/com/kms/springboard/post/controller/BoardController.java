@@ -6,12 +6,13 @@ import com.kms.springboard.post.service.BoardService;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
+
 import java.security.InvalidParameterException;
 import java.security.Principal;
 import java.util.List;

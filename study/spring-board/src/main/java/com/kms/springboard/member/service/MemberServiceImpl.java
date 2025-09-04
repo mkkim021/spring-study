@@ -35,6 +35,11 @@ public class MemberServiceImpl implements MemberService {
         if(existing != null) {
             throw new IllegalStateException("이미 존재하는 아이디입니다");
         }
+        //이메일 중복 체크
+        MemberEntity existingByEmail = memberRepository.findByEmail(memberDto.getEmail());
+        if(existingByEmail != null) {
+            throw new IllegalStateException("이미 존재하는 이메일입니다");
+        }
         String encoded = passwordEncoder.encode(memberDto.getPassword());
         MemberEntity member = MemberEntity.builder()
                 .userId(memberDto.getUserId())
@@ -50,6 +55,10 @@ public class MemberServiceImpl implements MemberService {
     public boolean isLogin(LoginDto loginDto) {
         String userId = loginDto.getUserId();
         String password = loginDto.getPassword();
+        if(userId == null || userId.isBlank()){
+            return false;
+        }
+
         MemberEntity findUserId = memberRepository.findByUserId(userId);
 
         if(password == null || password.isBlank()) {

@@ -8,12 +8,12 @@ import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.repository.BoardRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.nio.file.AccessDeniedException;
 import java.security.InvalidParameterException;
 import java.security.Principal;
 import java.util.List;
@@ -62,7 +62,6 @@ public class BoardServiceImpl implements BoardService {
                 .title(board.getTitle())
                 .content(board.getContent())
                 .writer(board.getWriter())
-                .password(passwordEncoder.encode(board.getPassword()))
                 .build();
         return boardDto;
     }
@@ -95,11 +94,11 @@ public class BoardServiceImpl implements BoardService {
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
         if (!boardEntity.getWriter().equals(username)) {
-            throw new InvalidParameterException("해당 게시물 작성자가 아닙니다");
+            throw new AccessDeniedException("해당 게시물 작성자가 아닙니다");
         }
         boolean passwordMatches = passwordEncoder.matches(rawPassword, boardEntity.getPassword());
         if(!passwordMatches) {
-            throw new InvalidParameterException("비밀번호가 일치하지 않습니다");
+            throw new AccessDeniedException("비밀번호가 일치하지 않습니다");
 
         }
         boardEntity.update(updateBoardDto.getTitle(), updateBoardDto.getContent());

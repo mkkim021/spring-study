@@ -24,6 +24,8 @@ public class SecurityConfig {
                 .formLogin(form ->form
                         .loginPage("/users/login")
                         .loginProcessingUrl("/users/login")
+                        .usernameParameter("userId")
+                        .passwordParameter("password")
                         .defaultSuccessUrl("/api/board",true)
                         .failureUrl("/users/login?error=true")
                         .permitAll()
