@@ -87,7 +87,7 @@ public class BoardController {
            boardService.updateWithPassword(
                    boardId,
                    boardDto,
-                   boardDto.getPassword(),
+                   boardDto.getPostPassword(),
                    principal !=null ? principal.getName():null
            );
         }catch(AccessDeniedException e){

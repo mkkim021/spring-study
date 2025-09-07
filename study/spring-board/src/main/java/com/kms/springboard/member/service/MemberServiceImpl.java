@@ -72,7 +72,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional(readOnly = true)
-    public MemberEntity findByUsername(String userId) {
+    public MemberEntity findByUserId(String userId) {
         return memberRepository.findByUserId(userId);
     }
 }

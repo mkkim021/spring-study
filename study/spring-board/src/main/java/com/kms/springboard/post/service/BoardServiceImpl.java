@@ -31,14 +31,14 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardEntity save(BoardDto boardDto) {
 
-        if(boardDto.getPassword() == null || boardDto.getPassword().isEmpty()) {
+        if(boardDto.getPostPassword() == null || boardDto.getPostPassword().isEmpty()) {
             throw new InvalidParameterException("비밀번호는 필수입니다");
         }
         BoardEntity buildEntity = BoardEntity.builder()
                 .title(boardDto.getTitle())
                 .writer(boardDto.getWriter())
                 .content(boardDto.getContent())
-                .password(passwordEncoder.encode(boardDto.getPassword()))
+                .postPassword(passwordEncoder.encode(boardDto.getPostPassword()))
                 .build();
         BoardEntity save = boardRepository.save(buildEntity);
         return save;
@@ -90,21 +90,21 @@ public class BoardServiceImpl implements BoardService {
 
 
     @Override
-    public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPassword, String username) throws AccessDeniedException {
+    public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPostPassword, String username) throws AccessDeniedException {
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
         if (!boardEntity.getWriter().equals(username)) {
             throw new AccessDeniedException("해당 게시물 작성자가 아닙니다");
         }
-        boolean passwordMatches = passwordEncoder.matches(rawPassword, boardEntity.getPassword());
-        if(!passwordMatches) {
+        boolean postPasswordMatches = passwordEncoder.matches(rawPostPassword, boardEntity.getPostPassword());
+        if(!postPasswordMatches) {
             throw new AccessDeniedException("비밀번호가 일치하지 않습니다");
 
         }
         boardEntity.update(updateBoardDto.getTitle(), updateBoardDto.getContent());
 
-        if(updateBoardDto.getPassword() != null && !updateBoardDto.getPassword().isEmpty()) {
-            boardEntity.updatePassword(passwordEncoder.encode(updateBoardDto.getPassword()));
+        if(updateBoardDto.getPostPassword() != null && !updateBoardDto.getPostPassword().isEmpty()) {
+            boardEntity.updatePassword(passwordEncoder.encode(updateBoardDto.getPostPassword()));
         }
     }
 

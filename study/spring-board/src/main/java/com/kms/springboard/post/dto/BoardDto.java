@@ -13,7 +13,7 @@ public class BoardDto {
     private String title;
     private String writer;
     @NotBlank(message = "비밀번호를 입력해주세요")
-    private String password;
+    private String postPassword;
     private String content;
 
 
