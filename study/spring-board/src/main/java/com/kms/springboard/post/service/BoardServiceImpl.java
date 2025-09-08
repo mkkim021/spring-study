@@ -31,9 +31,6 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardEntity save(BoardDto boardDto) {
 
-        if(boardDto.getPostPassword() == null || boardDto.getPostPassword().isEmpty()) {
-            throw new InvalidParameterException("비밀번호는 필수입니다");
-        }
         BoardEntity buildEntity = BoardEntity.builder()
                 .title(boardDto.getTitle())
                 .writer(boardDto.getWriter())
@@ -71,20 +68,11 @@ public class BoardServiceImpl implements BoardService {
     public void delete(Long id, String writer) {
         BoardEntity boardEntity = boardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
         if(!boardEntity.getWriter().equals(writer)) {
-            throw new InvalidParameterException("작성자만 게시글을 삭제할 수 있습니다");
+            throw new AccessDeniedException("작성자만 게시글을 삭제할 수 있습니다");
         }
         boardRepository.delete(boardEntity);
 
 
-    }
-
-    @Override
-    public void update(Long id, BoardDto updateBoardDto) {
-        BoardEntity board = boardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
-        board.update(updateBoardDto.getTitle(), updateBoardDto.getContent());
-        // 이러면 업데이트된 정보를 Transactional 범위 내에서 더티체킹으로 자동 반영
-        // 이중 save할 필요없음
     }
 
 

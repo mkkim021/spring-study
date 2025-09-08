@@ -17,7 +17,7 @@ import java.util.Locale;
         name="members",
         indexes = {
                 @Index(name = "uk_members_userId", columnList = "userId",unique = true),
-                @Index(name = "idx_members_email", columnList = "email")
+                @Index(name = "idx_members_email", columnList = "email", unique = true)
         }
 )
 public class MemberEntity {
@@ -35,13 +35,14 @@ public class MemberEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "email" ,nullable = false, length = 255)
+    @Column(name = "email" ,nullable = false, length = 255, unique = true)
     private String email;
 
     @PrePersist @PreUpdate
     private void normalize(){
         if(this.userId != null) this.userId = this.userId.trim().toLowerCase(Locale.ROOT);
         if(this.email != null) this.email = this.email.trim().toLowerCase(Locale.ROOT);
+        if(this.username != null) this.username = this.username.trim();
     }
 
 

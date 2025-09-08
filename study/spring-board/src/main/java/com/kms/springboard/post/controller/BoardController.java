@@ -42,7 +42,7 @@ public class BoardController {
 
     //1) Create
     @GetMapping("/board/save")
-    public String save() {
+    public String save(@ModelAttribute BoardDto boardDto) {
         return "posts/write";
     }
 
@@ -91,7 +91,7 @@ public class BoardController {
                    principal !=null ? principal.getName():null
            );
         }catch(AccessDeniedException e){
-            bindingResult.rejectValue("password", "mismatch", e.getMessage());
+            bindingResult.rejectValue("postPassword", "mismatch", e.getMessage());
             return "posts/update";
         }
         return "redirect:/api/board";

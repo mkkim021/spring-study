@@ -14,6 +14,5 @@ public interface BoardService {
     BoardDto getBoard(Long boardId);
 
     void delete(Long id, String writer);
-    void update(Long id,BoardDto updateBoardDto);
     void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPassword, String username)throws AccessDeniedException;
 }
