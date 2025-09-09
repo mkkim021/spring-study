@@ -29,7 +29,5 @@ public class BoardEntity {
         this.content = content;
 
     }
-    public void updatePassword(String postPassword) {
-        this.postPassword = postPassword;
-    }
+
 }

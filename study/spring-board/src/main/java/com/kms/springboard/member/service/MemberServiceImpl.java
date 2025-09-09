@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+
 
     @Override
     public MemberEntity save(MemberEntity member) {
@@ -33,18 +35,20 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberEntity saveDto(MemberDto memberDto) {
+        final var normalizedUserId = memberDto.getUserId().trim().toLowerCase(Locale.ROOT);
+        final var normalizedEmail = memberDto.getEmail().trim().toLowerCase(Locale.ROOT);
         if(memberRepository.existsByUserId(memberDto.getUserId())) {
             throw new IllegalStateException("이미 존재하는 아이디입니다");
         }
         //이메일 중복 체크
-        if(memberRepository.existsByEmail(memberDto.getEmail())) {
+        if(memberRepository.existsByEmail(normalizedEmail)) {
             throw new IllegalStateException("이미 존재하는 이메일입니다");
         }
         String encoded = passwordEncoder.encode(memberDto.getPassword());
         MemberEntity member = MemberEntity.builder()
-                .userId(memberDto.getUserId())
+                .userId(normalizedUserId)
                 .username(memberDto.getUsername())
-                .email(memberDto.getEmail())
+                .email(normalizedEmail)
                 .password(encoded)
                 .build();
         return memberRepository.save(member);
@@ -70,4 +74,7 @@ public class MemberServiceImpl implements MemberService {
     public Optional<MemberEntity> findByUserId(String userId) {
         return memberRepository.findByUserId(userId);
     }
+
+
+
 }

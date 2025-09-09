@@ -1,5 +1,6 @@
 package com.kms.springboard.member.entity;
 
+import com.kms.springboard.member.dto.MemberDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,7 @@ import java.util.Locale;
         name="members",
         indexes = {
                 @Index(name = "uk_members_userId", columnList = "userId",unique = true),
-                @Index(name = "idx_members_email", columnList = "email", unique = true)
+                @Index(name = "uk_members_email", columnList = "email", unique = true)
         }
 )
 public class MemberEntity {
@@ -29,13 +30,13 @@ public class MemberEntity {
     @Column(name = "username", nullable = false, length = 100)
     private String username;
 
-    @Column(name = "userId", nullable = false, unique = true,length = 50)
+    @Column(name = "userId", nullable = false, length = 50)
     private String userId;
 
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "email" ,nullable = false, length = 255, unique = true)
+    @Column(name = "email" ,nullable = false, length = 255)
     private String email;
 
     @PrePersist @PreUpdate
@@ -43,6 +44,15 @@ public class MemberEntity {
         if(this.userId != null) this.userId = this.userId.trim().toLowerCase(Locale.ROOT);
         if(this.email != null) this.email = this.email.trim().toLowerCase(Locale.ROOT);
         if(this.username != null) this.username = this.username.trim();
+    }
+
+    public MemberDto convertToDto() {
+        return MemberDto.builder()
+                .userId(this.userId)
+                .username(this.username)
+                .email(this.email)
+                .build();
+
     }
 
 
