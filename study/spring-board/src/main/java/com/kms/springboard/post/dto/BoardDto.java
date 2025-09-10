@@ -15,8 +15,8 @@ public class BoardDto {
     private String title;
     private String writer;
     @NotBlank(message = "게시글 비밀번호를 입력해주세요")
-    private String postPassword;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String postPassword;
     private String content;
 
 

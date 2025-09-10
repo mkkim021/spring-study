@@ -46,7 +46,10 @@ public class BoardController {
     public ResponseEntity<ApiResponse<BoardDto>> createBoard(
             @Valid @RequestBody BoardDto boardDto,
             Authentication authentication){
-        boardDto.setWriter(authentication.getName());
+        if(authentication == null || !authentication.isAuthenticated()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("인증이 필요합니다"));
+        }
         BoardDto saved = boardService.save(boardDto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("게시글 작성 완료", saved));

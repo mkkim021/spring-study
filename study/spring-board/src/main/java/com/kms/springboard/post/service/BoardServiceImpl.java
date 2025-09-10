@@ -108,7 +108,9 @@ public class BoardServiceImpl implements BoardService {
     public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPostPassword, String username) throws AccessDeniedException {
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
-        if (!boardEntity.getWriter().equals(username)) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        final String currentUser = auth == null?null:auth.getName();
+        if(!Objects.equals(currentUser, username)) {
             throw new AccessDeniedException("해당 게시물 작성자가 아닙니다");
         }
 

@@ -87,7 +87,8 @@ public class MemberServiceImpl implements MemberService {
         if(!isLogin(loginDto)){
             throw new EntityNotFoundException("아이디 또는 비밀번호가 잘못되었습니다");
         }
-        return jwtTokenProvider.generateToken(loginDto.getUserId());
+        final String normalizedUserId = loginDto.getUserId().trim().toLowerCase(Locale.ROOT);
+        return jwtTokenProvider.generateToken(normalizedUserId);
     }
 
 }
