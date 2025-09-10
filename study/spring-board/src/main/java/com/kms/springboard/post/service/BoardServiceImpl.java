@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.security.InvalidParameterException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 
 @RequiredArgsConstructor
@@ -30,7 +32,6 @@ import java.util.Objects;
 public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
-    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -93,9 +94,11 @@ public class BoardServiceImpl implements BoardService {
 
 
     @Override
-    public void delete(Long id, String writer) {
+    public void delete(Long id) {
         BoardEntity boardEntity = boardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
-        if(!Objects.equals(boardEntity.getWriter(), writer)) {
+        String currentUser = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+        .map(Authentication::getName).orElse(null);
+        if(!Objects.equals(boardEntity.getWriter(), currentUser)) {
             throw new AccessDeniedException("작성자만 게시글을 삭제할 수 있습니다");
         }
         boardRepository.delete(boardEntity);
@@ -110,7 +113,7 @@ public class BoardServiceImpl implements BoardService {
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
         var auth = SecurityContextHolder.getContext().getAuthentication();
         final String currentUser = auth == null?null:auth.getName();
-        if(!Objects.equals(currentUser, username)) {
+        if(!Objects.equals(boardEntity.getWriter(),currentUser)) {
             throw new AccessDeniedException("해당 게시물 작성자가 아닙니다");
         }
 

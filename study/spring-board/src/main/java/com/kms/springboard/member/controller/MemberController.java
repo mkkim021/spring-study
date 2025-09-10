@@ -57,8 +57,8 @@ public class MemberController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<MemberDto>> getMember(@PathVariable String userId) {
-        memberService.findByUserId(userId)
+    public ResponseEntity<ApiResponse<MemberResponseDto>> getMember(@PathVariable String userId) {
+        return memberService.findByUserId(userId)
                 .map(member -> {
                     MemberResponseDto res = MemberResponseDto.builder()
                             .userId(member.getUserId())
@@ -70,8 +70,9 @@ public class MemberController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(ApiResponse.error("회원을 찾을 수 없습니다")));
 
-        return ResponseEntity.notFound().build();
+
     }
+
 
 }
 @Data

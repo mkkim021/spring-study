@@ -1,5 +1,6 @@
 package com.kms.springboard.config;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,12 +23,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if(auth != null && auth.startsWith("Bearer ")) {
-            String token = auth.substring(7);
-            if(jwtTokenProvider.validateToken(token)) {
-                String userId = jwtTokenProvider.getUserIdFromToken(token);
-                var authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = auth.substring(7).trim();
+            try{
+                if(jwtTokenProvider.validateToken(token)
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    String userId = jwtTokenProvider.getUserIdFromToken(token);
+                    var authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (JwtException | IllegalArgumentException e) {
+                SecurityContextHolder.clearContext();
             }
         }
         chain.doFilter(request, response);

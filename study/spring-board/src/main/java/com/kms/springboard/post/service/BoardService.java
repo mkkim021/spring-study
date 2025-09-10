@@ -9,13 +9,8 @@ import org.springframework.security.access.AccessDeniedException;
 
 public interface BoardService {
     BoardDto save(BoardDto boardDto);
-
-
-
     Page<BoardDto> findAll(Pageable pageable);
-
     BoardDto findById(Long id);
-
-    void delete(Long id, String writer);
+    void delete(Long id);
     void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPassword, String username)throws AccessDeniedException;
 }

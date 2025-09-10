@@ -6,8 +6,6 @@ import com.kms.springboard.post.dto.BoardDto;
 import com.kms.springboard.post.service.BoardService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -21,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/board")
 public class BoardController {
     private final BoardService boardService;
 
@@ -37,9 +35,13 @@ public class BoardController {
 
     @GetMapping("/{boardId}")
     public ResponseEntity<ApiResponse<BoardDto>>getBoard(@PathVariable Long boardId){
-        BoardDto board = boardService.findById(boardId);
-        return ResponseEntity.ok(ApiResponse.success("게시글 조회 성공", board));
-
+        try{
+            BoardDto board = boardService.findById(boardId);
+            return ResponseEntity.ok(ApiResponse.success("게시글 조회 성공", board));
+        }catch(EntityNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("게시글을 찾을 수 없습니다"));
+        }
     }
 
     @PostMapping
@@ -54,21 +56,24 @@ public class BoardController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("게시글 작성 완료", saved));
     }
+
+
     @PutMapping("/{boardId}")
     public ResponseEntity<ApiResponse<BoardDto>> updateBoard(
             @PathVariable Long boardId,
-            @Valid @RequestBody BoardUpdateRequest request,
+            @Valid @RequestBody BoardDto boardDto,
             Authentication authentication){
         try{
             if(authentication == null){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.error("인증이 필요합니다"));
             }
+            String username = authentication.getName();
 
             boardService.updateWithPassword(
                     boardId,
-                    request.getBoardDto(),
-                    request.getPostPassword(),
+                    boardDto,
+                    boardDto.getPostPassword(),
                     authentication.getName()
             );
             BoardDto updateBoard = boardService.findById((boardId));
@@ -93,7 +98,7 @@ public class BoardController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.error("인증이 필요합니다"));
             }
-            boardService.delete(boardId, authentication.getName());
+            boardService.delete(boardId);
             return ResponseEntity.ok(ApiResponse.success("게시글 삭제 완료", null));
 
         }catch (EntityNotFoundException e) {
@@ -109,10 +114,3 @@ public class BoardController {
 
 }
 
-@Data
-class BoardUpdateRequest {
-    @Valid
-    private BoardDto boardDto;
-    @NotBlank
-    private String postPassword;
-}
