@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/board")
+@RequestMapping("/api/boards")
 public class BoardController {
     private final BoardService boardService;
 
@@ -64,17 +64,15 @@ public class BoardController {
             @Valid @RequestBody BoardDto boardDto,
             Authentication authentication){
         try{
-            if(authentication == null){
+            if(authentication == null || !authentication.isAuthenticated()){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.error("인증이 필요합니다"));
             }
-            String username = authentication.getName();
 
             boardService.updateWithPassword(
                     boardId,
                     boardDto,
-                    boardDto.getPostPassword(),
-                    authentication.getName()
+                    boardDto.getPostPassword()
             );
             BoardDto updateBoard = boardService.findById((boardId));
             return ResponseEntity.ok(ApiResponse.success("게시글 수정 완료", updateBoard));
@@ -94,7 +92,7 @@ public class BoardController {
             @PathVariable Long boardId,
             Authentication authentication){
         try{
-            if(authentication == null){
+            if(authentication == null|| !authentication.isAuthenticated()){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.error("인증이 필요합니다"));
             }

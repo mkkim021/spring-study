@@ -18,10 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import java.security.InvalidParameterException;
-import java.security.Principal;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,10 +32,13 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public BoardDto save(BoardDto boardDto) {
-
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth==null||!auth.isAuthenticated()) {
+            throw new AccessDeniedException("인증이 필요합니다");
+        }
         BoardEntity buildEntity = BoardEntity.builder()
                 .title(boardDto.getTitle())
-                .writer(SecurityContextHolder.getContext().getAuthentication()!=null?SecurityContextHolder.getContext().getAuthentication().getName(): boardDto.getWriter())
+                .writer(auth.getName())
                 .content(boardDto.getContent())
                 .postPassword(passwordEncoder.encode(boardDto.getPostPassword()))
                 .build();
@@ -65,7 +64,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardDto findById(Long id) {
         BoardEntity entity = boardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다" + id));
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다: " + id));
         return convertToDto(entity);
     }
 
@@ -80,25 +79,21 @@ public class BoardServiceImpl implements BoardService {
                 .build();
     }
 
-    // DTO -> Entity 변환 메서드 (기존 save에서 사용)
-    private BoardEntity convertToEntity(BoardDto dto) {
-        return BoardEntity.builder()
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .writer(dto.getWriter())
-                .postPassword(passwordEncoder.encode(dto.getPostPassword()))
-                .build();
-    }
+
 
 
 
 
     @Override
     public void delete(Long id) {
-        BoardEntity boardEntity = boardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
-        String currentUser = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-        .map(Authentication::getName).orElse(null);
-        if(!Objects.equals(boardEntity.getWriter(), currentUser)) {
+        BoardEntity boardEntity = boardRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth==null||!auth.isAuthenticated()) {
+            throw new AccessDeniedException("인증이 필요합니다");
+        }
+        String currentUser = auth.getName();
+        if(!Objects.equals(boardEntity.getWriter(),currentUser)){
             throw new AccessDeniedException("작성자만 게시글을 삭제할 수 있습니다");
         }
         boardRepository.delete(boardEntity);
@@ -108,7 +103,7 @@ public class BoardServiceImpl implements BoardService {
 
 
     @Override
-    public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPostPassword, String username) throws AccessDeniedException {
+    public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPostPassword) throws AccessDeniedException {
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
         var auth = SecurityContextHolder.getContext().getAuthentication();
