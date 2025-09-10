@@ -49,7 +49,7 @@ public class MemberController {
         try {
             String token = memberService.login(loginDto);
             var jwtCookie = ResponseCookie.from("ACCESS_TOKEN", token)
-                    .httpOnly(true).secure(true).sameSite("Strict").path("/")
+                    .httpOnly(true).secure(true).sameSite("Lax").path("/")
                     .maxAge(3600)
                     .build();
             LoginResponse response = LoginResponse.builder()

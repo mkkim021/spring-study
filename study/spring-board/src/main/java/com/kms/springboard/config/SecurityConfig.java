@@ -28,8 +28,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/board","/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/users/login","/users/register").permitAll()
+                        .requestMatchers("/","/api/boards","/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/users/login","/users/register").permitAll()
                         .anyRequest().authenticated()
                 );
 
