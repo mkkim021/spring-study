@@ -15,5 +15,5 @@ public interface MemberService {
     MemberEntity saveDto(MemberDto memberDto);
     boolean isLogin(LoginDto loginDto);
     Optional <MemberEntity> findByUserId(String userId);
-
+    String login(LoginDto loginDto);
 }

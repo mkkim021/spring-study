@@ -3,6 +3,7 @@ package com.kms.springboard.member.controller;
 import com.kms.springboard.common.dto.ApiResponse;
 import com.kms.springboard.member.dto.LoginDto;
 import com.kms.springboard.member.dto.MemberDto;
+import com.kms.springboard.member.dto.MemberResponseDto;
 import com.kms.springboard.member.entity.MemberEntity;
 import com.kms.springboard.member.service.MemberService;
 import jakarta.validation.Valid;
@@ -47,7 +48,7 @@ public class MemberController {
             return ResponseEntity.ok(ApiResponse.success("로그인 성공", response));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error("로그인 실패:" + e.getMessage()));
+                    .body(ApiResponse.error("로그인 실패:"));
         }
 
 
@@ -57,9 +58,15 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberDto>> getMember(@PathVariable String userId) {
         memberService.findByUserId(userId)
                 .map(member -> {
-                    MemberDto memberDto = member.convertToDto();
-                   return ResponseEntity.ok(ApiResponse.success("회원 조회 성공", memberDto));
-                });
+                    MemberResponseDto res = MemberResponseDto.builder()
+                            .userId(member.getUserId())
+                            .username(member.getUsername())
+                            .email(member.getEmail())
+                            .build();
+                    return ResponseEntity.ok(ApiResponse.success("회원 조회 성공", res));
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("회원을 찾을 수 없습니다")));
 
         return ResponseEntity.notFound().build();
     }

@@ -1,9 +1,11 @@
 package com.kms.springboard.member.service;
 
+import com.kms.springboard.config.JwtTokenProvider;
 import com.kms.springboard.member.dto.LoginDto;
 import com.kms.springboard.member.dto.MemberDto;
 import com.kms.springboard.member.entity.MemberEntity;
 import com.kms.springboard.member.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +23,7 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public MemberEntity save(MemberEntity member) {
@@ -37,7 +39,7 @@ public class MemberServiceImpl implements MemberService {
     public MemberEntity saveDto(MemberDto memberDto) {
         final var normalizedUserId = memberDto.getUserId().trim().toLowerCase(Locale.ROOT);
         final var normalizedEmail = memberDto.getEmail().trim().toLowerCase(Locale.ROOT);
-        if(memberRepository.existsByUserId(memberDto.getUserId())) {
+        if(memberRepository.existsByUserId(normalizedUserId)) {
             throw new IllegalStateException("이미 존재하는 아이디입니다");
         }
         //이메일 중복 체크
@@ -63,10 +65,13 @@ public class MemberServiceImpl implements MemberService {
         if(userId == null || userId.isBlank() || password == null || password.isBlank()) {
             return false;
         }
+        final String normalized = userId == null ? "" : userId.trim().toLowerCase(Locale.ROOT);
+        return memberRepository.findByUserId(normalized)
+                .map(member-> passwordEncoder.matches(password,member.getPassword()))
+                        .orElse(false);
 
 
-        return memberRepository.findByUserId(userId).map(member -> passwordEncoder.matches(password, member.getPassword()))
-                .orElse(false);
+
     }
 
     @Override
@@ -76,5 +81,13 @@ public class MemberServiceImpl implements MemberService {
     }
 
 
+    @Override
+    @Transactional(readOnly = true)
+    public String login(LoginDto loginDto) {
+        if(!isLogin(loginDto)){
+            throw new EntityNotFoundException("아이디 또는 비밀번호가 잘못되었습니다");
+        }
+        return jwtTokenProvider.generateToken(loginDto.getUserId());
+    }
 
 }

@@ -55,11 +55,6 @@ public class BoardServiceImpl implements BoardService {
 
 
     @Override
-    public List<BoardEntity> findByAll() {
-        return boardRepository.findAll();
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public Page<BoardDto> findAll(Pageable pageable) {
         Page<BoardEntity> page = boardRepository.findAll(pageable);
@@ -69,7 +64,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardDto findById(Long id) {
         BoardEntity entity = boardRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다" + id));
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다" + id));
         return convertToDto(entity);
     }
 
@@ -94,26 +89,13 @@ public class BoardServiceImpl implements BoardService {
                 .build();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public BoardDto getBoard(Long boardId) {
-        BoardEntity board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
 
-        BoardDto boardDto = BoardDto.builder()
-                .id(board.getId())
-                .title(board.getTitle())
-                .content(board.getContent())
-                .writer(board.getWriter())
-                .build();
-        return boardDto;
-    }
 
 
     @Override
     public void delete(Long id, String writer) {
         BoardEntity boardEntity = boardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
-        if(Objects.equals(boardEntity.getWriter(), writer)) {
+        if(!Objects.equals(boardEntity.getWriter(), writer)) {
             throw new AccessDeniedException("작성자만 게시글을 삭제할 수 있습니다");
         }
         boardRepository.delete(boardEntity);

@@ -24,6 +24,7 @@ public class MemberDto {
     @Size(max = 255, message = "이메일은 255자 이하여야 합니다")
     private String email;
     @NotBlank(message = "비밀번호를 입력해주세요")
+    @Size(min=3,max=64,message = "비밀번호는 3~64자여야 합니다")
     private String password;
 
 }

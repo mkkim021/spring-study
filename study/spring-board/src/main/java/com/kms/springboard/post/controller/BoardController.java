@@ -3,9 +3,10 @@ package com.kms.springboard.post.controller;
 
 import com.kms.springboard.common.dto.ApiResponse;
 import com.kms.springboard.post.dto.BoardDto;
-import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.service.BoardService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +44,7 @@ public class BoardController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<BoardDto>> createBoard(
-            @RequestBody BoardDto boardDto,
+            @Valid @RequestBody BoardDto boardDto,
             Authentication authentication){
         boardDto.setWriter(authentication.getName());
         BoardDto saved = boardService.save(boardDto);
@@ -56,6 +57,11 @@ public class BoardController {
             @Valid @RequestBody BoardUpdateRequest request,
             Authentication authentication){
         try{
+            if(authentication == null){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("인증이 필요합니다"));
+            }
+
             boardService.updateWithPassword(
                     boardId,
                     request.getBoardDto(),
@@ -65,7 +71,10 @@ public class BoardController {
             BoardDto updateBoard = boardService.findById((boardId));
             return ResponseEntity.ok(ApiResponse.success("게시글 수정 완료", updateBoard));
 
-        }catch(AccessDeniedException e){
+        }catch(EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("게시글을 찾을 수 없습니다"));
+        }catch(AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ApiResponse.error("수정 권한이 없습니다"));
         }
@@ -77,10 +86,17 @@ public class BoardController {
             @PathVariable Long boardId,
             Authentication authentication){
         try{
+            if(authentication == null){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("인증이 필요합니다"));
+            }
             boardService.delete(boardId, authentication.getName());
             return ResponseEntity.ok(ApiResponse.success("게시글 삭제 완료", null));
 
-        } catch (AccessDeniedException e) {
+        }catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("게시글을 찾을 수 없습니다."));
+        }catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ApiResponse.error("삭제 권한이 없습니다."));
         }
@@ -94,5 +110,6 @@ public class BoardController {
 class BoardUpdateRequest {
     @Valid
     private BoardDto boardDto;
+    @NotBlank
     private String postPassword;
 }
