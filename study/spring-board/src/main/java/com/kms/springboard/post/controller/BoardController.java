@@ -1,116 +1,114 @@
 package com.kms.springboard.post.controller;
 
+
+import com.kms.springboard.common.dto.ApiResponse;
 import com.kms.springboard.post.dto.BoardDto;
-import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.service.BoardService;
-import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.InvalidParameterException;
-import java.security.Principal;
-import java.util.List;
-
-@Controller
+@RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/boards")
 public class BoardController {
     private final BoardService boardService;
 
-
-
-    // Main 폼
     @GetMapping
-    public String mainForm() {
-        return "index";
-    }
-
-    // 0) List
-    @GetMapping("/board")
-    public String board(Model model) {
-        List<BoardEntity> boardList = boardService.findByAll();
-        model.addAttribute("boardList", boardList);
-        return "posts/list";
-    }
-
-
-    //1) Create
-    @GetMapping("/board/save")
-    public String save() {
-        return "posts/write";
-    }
-
-    @PostMapping("/board/save")
-    public String save(@Valid @ModelAttribute BoardDto boardDto, BindingResult bindingResult) {
-        if(bindingResult.hasErrors()) {
-            return "posts/write";
-        }
-        boardService.save(boardDto);
-        return "redirect:/api/board";
+    public ResponseEntity<ApiResponse<Page<BoardDto>>> getAllBoards(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<BoardDto> boards = boardService.findAll(pageable);
+        return ResponseEntity.ok(ApiResponse.success("게시글 목록 조회 성공" , boards));
 
     }
-    //2) Detail
-    @GetMapping("/board/{boardId}")
-    public String detail(@PathVariable Long boardId, Model model) {
-        BoardDto board = boardService.getBoard(boardId);
-        model.addAttribute("board", board);
-        return "posts/detail";
-    }
-    //3) Edit
-    @GetMapping("/board/update/{boardId}")
-    public String edit(@PathVariable Long boardId, Model model) {
-        BoardDto board = boardService.getBoard(boardId);
-        model.addAttribute("board", board);
-        return "posts/update";
-    }
-    @PostMapping("/board/update/{boardId}")
-    public String edit(@PathVariable Long boardId,
-                       @Valid @ModelAttribute BoardDto boardDto,
-                       BindingResult bindingResult,
-                       Model model, Principal principal) {
-        if(bindingResult.hasErrors()) {
-            model.addAttribute("board", boardDto);
-            return "posts/update";
-        }
+
+    @GetMapping("/{boardId}")
+    public ResponseEntity<ApiResponse<BoardDto>>getBoard(@PathVariable Long boardId){
         try{
-            boolean ok = boardService.verifyPassword(
-                    boardId, boardDto.getPassword(),
-                    principal!=null?principal.getName():null);
-            if(!ok) {
-                bindingResult.rejectValue("password","mismatch","비밀번호가 일치하지 않습니다");
-                model.addAttribute("board", boardDto);
-            }
-            boardService.update(boardId, boardDto);
-        }catch(InvalidParameterException e){
-            bindingResult.rejectValue("password", "missmatch", e.getMessage());
-            model.addAttribute("board", boardDto);
-            return "posts/update";
+            BoardDto board = boardService.findById(boardId);
+            return ResponseEntity.ok(ApiResponse.success("게시글 조회 성공", board));
+        }catch(EntityNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("게시글을 찾을 수 없습니다"));
         }
-        return "redirect:/api/board";
     }
 
-    //4) Delete
-    @PostMapping("/board/delete/{boardId}")
-    public String delete(@PathVariable Long boardId, Principal principal) {
-        boardService.delete(boardId,principal.getName());
-        return "redirect:/api/board";
+    @PostMapping
+    public ResponseEntity<ApiResponse<BoardDto>> createBoard(
+            @Valid @RequestBody BoardDto boardDto,
+            Authentication authentication){
+        if(authentication == null || !authentication.isAuthenticated()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("인증이 필요합니다"));
+        }
+        BoardDto saved = boardService.save(boardDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("게시글 작성 완료", saved));
     }
 
 
+    @PutMapping("/{boardId}")
+    public ResponseEntity<ApiResponse<BoardDto>> updateBoard(
+            @PathVariable Long boardId,
+            @Valid @RequestBody BoardDto boardDto,
+            Authentication authentication){
+        try{
+            if(authentication == null || !authentication.isAuthenticated()){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("인증이 필요합니다"));
+            }
 
+            boardService.updateWithPassword(
+                    boardId,
+                    boardDto,
+                    boardDto.getPostPassword()
+            );
+            BoardDto updateBoard = boardService.findById((boardId));
+            return ResponseEntity.ok(ApiResponse.success("게시글 수정 완료", updateBoard));
 
+        }catch(EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("게시글을 찾을 수 없습니다"));
+        }catch(AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("수정 권한이 없습니다"));
+        }
 
+    }
 
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<ApiResponse<Void>> deleteBoard(
+            @PathVariable Long boardId,
+            Authentication authentication){
+        try{
+            if(authentication == null|| !authentication.isAuthenticated()){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("인증이 필요합니다"));
+            }
+            boardService.delete(boardId);
+            return ResponseEntity.ok(ApiResponse.success("게시글 삭제 완료", null));
 
-
-    /**
-     * 테스트 추가 데이터
-     */
+        }catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("게시글을 찾을 수 없습니다."));
+        }catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("삭제 권한이 없습니다."));
+        }
+    }
 
 
 
 }
+

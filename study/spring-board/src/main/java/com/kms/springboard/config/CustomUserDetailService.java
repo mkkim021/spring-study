@@ -16,14 +16,13 @@ public class CustomUserDetailService implements UserDetailsService {
     private final MemberRepository memberRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        MemberEntity member = memberRepository.findByUsername(username);
-        if(member == null) {
-            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다:" + username);
-        }
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+        MemberEntity member = memberRepository.findByUserId(userId)
+                        .orElseThrow(() -> new UsernameNotFoundException("아이디를 찾을 수 없습니다" + userId));
+
 
         return User.builder()
-                .username(member.getUsername())
+                .username(member.getUserId())
                 .password(member.getPassword())
                 .roles("USER")
                 .build();

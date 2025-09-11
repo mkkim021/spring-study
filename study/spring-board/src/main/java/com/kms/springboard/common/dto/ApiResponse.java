@@ -1,0 +1,39 @@
+package com.kms.springboard.common.dto;
+
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ApiResponse<T>{
+    private boolean success;
+    private String message;
+    private T data;
+    private Instant timeStamp;
+
+    public static <T> ApiResponse<T> success(String message,T data) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .message(message)
+                .data(data)
+                .timeStamp(Instant.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(String message){
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .timeStamp(Instant.now())
+                .build();
+    }
+
+}

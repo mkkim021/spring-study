@@ -2,20 +2,24 @@ package com.kms.springboard.post.service;
 
 
 
+import com.kms.springboard.member.entity.MemberEntity;
 import com.kms.springboard.member.repository.MemberRepository;
 import com.kms.springboard.post.dto.BoardDto;
 import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.repository.BoardRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import java.security.InvalidParameterException;
-import java.security.Principal;
-import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 
 @RequiredArgsConstructor
@@ -24,119 +28,99 @@ import java.util.List;
 public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
-    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public BoardEntity save(BoardDto boardDto) {
-
-        if(boardDto.getPassword() == null || boardDto.getPassword().isEmpty()) {
-            throw new InvalidParameterException("비밀번호는 필수입니다");
+    public BoardDto save(BoardDto boardDto) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth==null||!auth.isAuthenticated()) {
+            throw new AccessDeniedException("인증이 필요합니다");
         }
         BoardEntity buildEntity = BoardEntity.builder()
                 .title(boardDto.getTitle())
-                .writer(boardDto.getWriter())
+                .writer(auth.getName())
                 .content(boardDto.getContent())
-                .password(passwordEncoder.encode(boardDto.getPassword()))
+                .postPassword(passwordEncoder.encode(boardDto.getPostPassword()))
                 .build();
         BoardEntity save = boardRepository.save(buildEntity);
-        return save;
+        return BoardDto.builder()
+                .id(save.getId())
+                .title(save.getTitle())
+                .content(save.getContent())
+                .writer(save.getWriter())
+                .build();
+
     }
 
 
-
-    @Override
-    public List<BoardEntity> findByAll() {
-        return boardRepository.findAll();
-    }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardDto getBoard(Long boardId) {
-        BoardEntity board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
+    public Page<BoardDto> findAll(Pageable pageable) {
+        Page<BoardEntity> page = boardRepository.findAll(pageable);
+        return page.map(this::convertToDto);
+    }
 
-        BoardDto boardDto = BoardDto.builder()
-                .id(board.getId())
-                .title(board.getTitle())
-                .content(board.getContent())
-                .writer(board.getWriter())
-                .build();
-        return boardDto;
+    @Override
+    public BoardDto findById(Long id) {
+        BoardEntity entity = boardRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다: " + id));
+        return convertToDto(entity);
     }
 
 
+    // Entity -> DTO 변환 메서드
+    private BoardDto convertToDto(BoardEntity entity) {
+        return BoardDto.builder()
+                .id(entity.getId())
+                .title(entity.getTitle())
+                .content(entity.getContent())
+                .writer(entity.getWriter())
+                .build();
+    }
+
+
+
+
+
+
     @Override
-    public void delete(Long id, String writer) {
-        BoardEntity boardEntity = boardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
-        if(!boardEntity.getWriter().equals(writer)) {
-            throw new InvalidParameterException("작성자만 게시글을 삭제할 수 있습니다");
+    public void delete(Long id) {
+        BoardEntity boardEntity = boardRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth==null||!auth.isAuthenticated()) {
+            throw new AccessDeniedException("인증이 필요합니다");
+        }
+        String currentUser = auth.getName();
+        if(!Objects.equals(boardEntity.getWriter(),currentUser)){
+            throw new AccessDeniedException("작성자만 게시글을 삭제할 수 있습니다");
         }
         boardRepository.delete(boardEntity);
 
-
     }
 
-    @Override
-    public void update(Long id, BoardDto updateBoardDto) {
-        BoardEntity board = boardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + id));
-        board.update(updateBoardDto.getTitle(), updateBoardDto.getContent());
-        // 이러면 업데이트된 정보를 Transactional 범위 내에서 더티체킹으로 자동 반영
-        // 이중 save할 필요없음
-    }
+
 
     @Override
-    @Transactional(readOnly = true)
-    public boolean verifyPassword(Long boardId, String rawPassword, String username) {
-
+    public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPostPassword) throws AccessDeniedException {
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        final String currentUser = auth == null?null:auth.getName();
+        if(!Objects.equals(boardEntity.getWriter(),currentUser)) {
+            throw new AccessDeniedException("해당 게시물 작성자가 아닙니다");
+        }
 
-        // 작성자 검증
-        if (username == null || !boardEntity.getWriter().equals(username)) {
-            throw new InvalidParameterException("해당 게시글의 작성자가 아닙니다");
-        }
-        //비밀번호 검증
-        boolean matches = isPasswordHashed(boardEntity.getPassword())
-                ? passwordEncoder.matches(rawPassword, boardEntity.getPassword())
-                : boardEntity.getPassword().equals(rawPassword);
-        if(!matches){
-            throw new InvalidParameterException("비밀번호가 일치하지 않습니다");
-        }
-        return true;
-    }
+        boolean postPasswordMatches = passwordEncoder.matches(rawPostPassword, boardEntity.getPostPassword());
+        if(!postPasswordMatches) {
+            throw new AccessDeniedException("비밀번호가 일치하지 않습니다");
 
-    @Override
-    public void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPassword, String username) {
-        BoardEntity boardEntity = boardRepository.findById(boardId)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found:" + boardId));
-        if (!boardEntity.getWriter().equals(username)) {
-            throw new InvalidParameterException("해당 게시물 작성자가 아닙니다");
-        }
-        boolean passwordMatches;
-        if(isPasswordHashed(boardEntity.getPassword())) {
-            passwordMatches = passwordEncoder.matches(rawPassword,boardEntity.getPassword());
-
-        }
-        else{
-            passwordMatches = boardEntity.getPassword().equals(rawPassword);
-        }
-        if(!passwordMatches) {
-            throw new InvalidParameterException("비밀번호가 일치하지 않습니다");
         }
         boardEntity.update(updateBoardDto.getTitle(), updateBoardDto.getContent());
 
-        if(updateBoardDto.getPassword() != null && !updateBoardDto.getPassword().isEmpty()) {
-            boardEntity.updatePassword(passwordEncoder.encode(updateBoardDto.getPassword()));
-
-
-        }
     }
 
 
-    private boolean isPasswordHashed(String password) {
-        return password != null && password.startsWith("$2");
-    }
 
 }
