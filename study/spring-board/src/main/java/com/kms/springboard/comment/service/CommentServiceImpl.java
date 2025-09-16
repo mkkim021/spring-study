@@ -1,6 +1,5 @@
 package com.kms.springboard.comment.service;
 
-import com.kms.springboard.comment.dto.CommentCreateRequest;
 import com.kms.springboard.comment.dto.CommentDto;
 import com.kms.springboard.comment.entity.CommentEntity;
 import com.kms.springboard.comment.repository.CommentRepository;
@@ -21,8 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+
 
 
 @Service
@@ -36,7 +34,7 @@ public class CommentServiceImpl implements CommentService {
 
 
     @Override
-    public CommentDto createComment(CommentCreateRequest request) {
+    public CommentDto createComment(CommentDto request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth == null||!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
             throw new AccessDeniedException("인증이 필요합니다");
@@ -58,13 +56,14 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CommentDto> findByBoardId(Long boardId, Pageable pageable) {
-        Page<CommentEntity> findComment = commentRepository.findByBoardIdOrderByCommentIdAsc(boardId,pageable);
+        Page<CommentEntity> findComment = commentRepository.findByBoardId(boardId,pageable);
         return findComment.map(this::convertToDto);
     }
 
     @Override
-    public CommentDto updateComment(Long commentId, CommentCreateRequest request) {
+    public CommentDto updateComment(Long commentId, CommentDto request) {
         return null;
     }
 

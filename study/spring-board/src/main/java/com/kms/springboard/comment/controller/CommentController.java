@@ -2,11 +2,9 @@ package com.kms.springboard.comment.controller;
 
 
 
-import com.kms.springboard.comment.dto.CommentCreateRequest;
 import com.kms.springboard.comment.dto.CommentDto;
 import com.kms.springboard.comment.service.CommentService;
 import com.kms.springboard.common.dto.ApiResponse;
-import com.kms.springboard.member.service.MemberService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,14 +24,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/comments")
 public class CommentController {
     private final CommentService commentService;
-    private final MemberService memberService;
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<CommentDto>> createComment(
-            @Valid @RequestBody CommentCreateRequest request,
+            @Valid @RequestBody CommentDto request,
             Authentication auth) {
         try{
-            if(auth == null || !auth.isAuthenticated()) {
+            if(auth == null || !auth.isAuthenticated()||auth instanceof AnonymousAuthenticationToken) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.error("인증이 필요합니다"));
             }
@@ -46,25 +45,23 @@ public class CommentController {
 
     }
 
-    @GetMapping
+    @GetMapping("/boards/{boardId}")
     public ResponseEntity<ApiResponse<Page<CommentDto>>> getCommentByBoardId(
-            @RequestParam Long boardId,
+            @PathVariable Long boardId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10")int size,
             Authentication auth) {
-        try {
-            if (auth == null || !auth.isAuthenticated()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(ApiResponse.error("인증이 필요합니다"));
-            }
-            Pageable pageable = PageRequest.of(page, size);
-            Page<CommentDto> commentsByBoardId = commentService.findByBoardId(boardId, pageable);
 
-            return ResponseEntity.ok(ApiResponse.success("해당 게시글 댓글 조회 성공", commentsByBoardId));
-        }catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("해당 게시글 댓글이 없습니다."));
+
+        if (auth == null || !auth.isAuthenticated()|| auth instanceof AnonymousAuthenticationToken) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("인증이 필요합니다"));
         }
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CommentDto> commentsByBoardId = commentService.findByBoardId(boardId, pageable);
+
+        return ResponseEntity.ok(ApiResponse.success("해당 게시글 댓글 조회 성공", commentsByBoardId));
+
 
     }
 
