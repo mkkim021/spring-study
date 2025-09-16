@@ -33,9 +33,9 @@ public class CommentEntity {
     @JoinColumn(name = "memberId",nullable = false)
     private MemberEntity member;
 
-    @Column(name = "content")
+    @Column(name = "content", nullable = false, length = 1000)
     private String content;
 
-    @Column(name = "writer")
+    @Column(name = "writer", nullable = false, length = 100)
     private String writer;
 }

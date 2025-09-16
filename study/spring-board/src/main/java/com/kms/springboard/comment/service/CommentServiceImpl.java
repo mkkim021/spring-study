@@ -8,24 +8,27 @@ import com.kms.springboard.member.entity.MemberEntity;
 import com.kms.springboard.member.service.MemberService;
 import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.repository.BoardRepository;
-import com.kms.springboard.post.service.BoardService;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
 @Transactional
-@Builder
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final BoardRepository boardRepository;
@@ -34,8 +37,8 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDto createComment(CommentCreateRequest request) {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth == null||!auth.isAuthenticated()) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth == null||!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
             throw new AccessDeniedException("인증이 필요합니다");
         }
         BoardEntity board = boardRepository.findById(request.getBoardId())
@@ -52,6 +55,22 @@ public class CommentServiceImpl implements CommentService {
         CommentEntity saved = commentRepository.save(buildComment);
 
         return convertToDto(saved);
+    }
+
+    @Override
+    public Page<CommentDto> findByBoardId(Long boardId, Pageable pageable) {
+        Page<CommentEntity> findComment = commentRepository.findByBoardIdOrderByCommentIdAsc(boardId,pageable);
+        return findComment.map(this::convertToDto);
+    }
+
+    @Override
+    public CommentDto updateComment(Long commentId, CommentCreateRequest request) {
+        return null;
+    }
+
+    @Override
+    public void deleteComment(Long commentId) {
+
     }
 
     private CommentDto convertToDto(CommentEntity entity) {
