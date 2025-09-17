@@ -58,7 +58,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public Page<CommentDto> findByBoardId(Long boardId, Pageable pageable) {
-        Page<CommentEntity> findComment = commentRepository.findByBoardId(boardId,pageable);
+        Page<CommentEntity> findComment = commentRepository.findCommentsByBoardId(boardId,pageable);
         return findComment.map(this::convertToDto);
     }
 
@@ -79,6 +79,9 @@ public class CommentServiceImpl implements CommentService {
                 .content(entity.getContent())
                 .writer(entity.getWriter())
                 .boardId(entity.getBoard().getId())
+                .memberId(entity.getMember().getMemberId())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 

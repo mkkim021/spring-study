@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.lang.reflect.Member;
+import java.time.LocalDateTime;
 
 @Entity
 @AllArgsConstructor
@@ -18,7 +19,7 @@ import java.lang.reflect.Member;
 @Table(name = "comments")
 @Builder
 @Getter
-@EntityListeners(AuditingEntityListener.class)
+
 public class CommentEntity {
 
     @Id
@@ -38,4 +39,12 @@ public class CommentEntity {
 
     @Column(name = "writer", nullable = false, length = 100)
     private String writer;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public void update(String content) {
+        this.content = content;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
