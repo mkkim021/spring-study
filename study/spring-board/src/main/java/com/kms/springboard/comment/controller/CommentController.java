@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,6 +68,21 @@ public class CommentController {
         return ResponseEntity.ok(ApiResponse.success("해당 게시글 댓글 조회 성공", commentsByBoardId));
 
 
+    }
+    @GetMapping("/boards/{memberId}")
+    public ResponseEntity<ApiResponse<Page<CommentDto>>> getCommentsByMemberId(
+            @PathVariable Long memberId,
+            @RequestParam(defaultValue = "1") @Positive int page,
+            @RequestParam(defaultValue = "10")@Positive@Max(100) int size,
+            Authentication auth){
+        if (auth == null || !auth.isAuthenticated()|| auth instanceof AnonymousAuthenticationToken) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("인증이 필요합니다"));
+        }
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CommentDto> commentsByMemberId = commentService.findByMemberId(memberId, pageable);
+
+        return ResponseEntity.ok(ApiResponse.success("해당 유저가 작성한 댓글 조회 성공", commentsByMemberId));
     }
 
 

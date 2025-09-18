@@ -63,14 +63,11 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDto updateComment(Long commentId, CommentDto request) {
-        return null;
+    public Page<CommentDto> findByMemberId(Long memberId, Pageable pageable) {
+        Page<CommentEntity> commentsByMemberId = commentRepository.findCommentsByMemberId(memberId, pageable);
+        return commentsByMemberId.map(this::convertToDto);
     }
 
-    @Override
-    public void deleteComment(Long commentId) {
-
-    }
 
     private CommentDto convertToDto(CommentEntity entity) {
 
@@ -79,7 +76,7 @@ public class CommentServiceImpl implements CommentService {
                 .content(entity.getContent())
                 .writer(entity.getWriter())
                 .boardId(entity.getBoard().getId())
-                .memberId(entity.getMember().getMemberId())
+                .memberId(entity.getMember().getId())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
