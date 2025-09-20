@@ -5,12 +5,15 @@ package com.kms.springboard.comment.controller;
 import com.kms.springboard.comment.dto.CommentDto;
 import com.kms.springboard.comment.service.CommentService;
 import com.kms.springboard.common.dto.ApiResponse;
+import com.kms.springboard.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,17 +21,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @Validated
 @RequestMapping("/api/comments")
 public class CommentController {
     private final CommentService commentService;
+    private final MemberRepository memberRepository;
 
 
     @PostMapping
@@ -45,7 +49,7 @@ public class CommentController {
                     .body(ApiResponse.success("댓글 작성 완료",savedComment));
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("게시글을 찾을 수 없습니다"));
+                    .body(ApiResponse.error(e.getMessage()));
         }
 
     }
@@ -53,7 +57,7 @@ public class CommentController {
     @GetMapping("/boards/{boardId}")
     public ResponseEntity<ApiResponse<Page<CommentDto>>> getCommentsByBoardId(
             @PathVariable Long boardId,
-            @RequestParam(defaultValue = "1") @Positive int page,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int page,
             @RequestParam(defaultValue = "10")@Positive @Max(100)int size,
             Authentication auth) {
 
@@ -69,18 +73,26 @@ public class CommentController {
 
 
     }
-    @GetMapping("/boards/{memberId}")
-    public ResponseEntity<ApiResponse<Page<CommentDto>>> getCommentsByMemberId(
-            @PathVariable Long memberId,
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<ApiResponse<Page<CommentDto>>> getCommentsByUserId(
+            @PathVariable String userId,
             @RequestParam(defaultValue = "1") @Positive int page,
             @RequestParam(defaultValue = "10")@Positive@Max(100) int size,
             Authentication auth){
+        log.info("getCommentsByUserId {}", userId);
+
         if (auth == null || !auth.isAuthenticated()|| auth instanceof AnonymousAuthenticationToken) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("인증이 필요합니다"));
         }
+
+        if(!auth.getName().equals(userId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("해당 사용자만 조회할 수 있습니다"));
+
+        }
         Pageable pageable = PageRequest.of(page, size);
-        Page<CommentDto> commentsByMemberId = commentService.findByMemberId(memberId, pageable);
+        Page<CommentDto> commentsByMemberId = commentService.findByUserId(userId, pageable);
 
         return ResponseEntity.ok(ApiResponse.success("해당 유저가 작성한 댓글 조회 성공", commentsByMemberId));
     }

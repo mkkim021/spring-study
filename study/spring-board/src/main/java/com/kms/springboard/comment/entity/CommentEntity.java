@@ -16,7 +16,10 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "comments")
+@Table(
+        name = "comments",indexes = {
+                @Index(name = "idx_comments_board_id", columnList = "boardId")
+})
 @Builder
 @Getter
 
@@ -33,6 +36,9 @@ public class CommentEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId",nullable = false)
     private MemberEntity member;
+
+    @Column(nullable = false)
+    private String userId;
 
     @Column(name = "content", nullable = false, length = 1000)
     private String content;

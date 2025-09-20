@@ -48,6 +48,7 @@ public class CommentServiceImpl implements CommentService {
                 .writer(auth.getName())
                 .board(board)
                 .member(member)
+                .userId(auth.getName())
                 .build();
 
         CommentEntity saved = commentRepository.save(buildComment);
@@ -63,8 +64,8 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Page<CommentDto> findByMemberId(Long memberId, Pageable pageable) {
-        Page<CommentEntity> commentsByMemberId = commentRepository.findCommentsByMemberId(memberId, pageable);
+    public Page<CommentDto> findByUserId(String userId, Pageable pageable) {
+        Page<CommentEntity> commentsByMemberId = commentRepository.findCommentsByUserId(userId, pageable);
         return commentsByMemberId.map(this::convertToDto);
     }
 

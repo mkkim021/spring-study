@@ -9,6 +9,6 @@ import org.springframework.data.domain.Pageable;
 public interface CommentService {
     CommentDto createComment(CommentDto request);
     Page<CommentDto> findByBoardId(Long boardId, Pageable pageable);
-    Page<CommentDto> findByMemberId(Long memberId, Pageable pageable);
+    Page<CommentDto> findByUserId(String userId, Pageable pageable);
 
 }
