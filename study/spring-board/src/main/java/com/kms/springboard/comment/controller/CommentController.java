@@ -8,6 +8,7 @@ import com.kms.springboard.common.dto.ApiResponse;
 import com.kms.springboard.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -37,7 +38,7 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CommentDto>> createComment(
-            @Validated @RequestBody CommentDto request,
+            @Valid @RequestBody CommentDto request,
             Authentication auth) {
         try{
             if(auth == null || !auth.isAuthenticated()||auth instanceof AnonymousAuthenticationToken) {
@@ -76,7 +77,7 @@ public class CommentController {
     @GetMapping("/users/{userId}")
     public ResponseEntity<ApiResponse<Page<CommentDto>>> getCommentsByUserId(
             @PathVariable String userId,
-            @RequestParam(defaultValue = "1") @Positive int page,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int page,
             @RequestParam(defaultValue = "10")@Positive@Max(100) int size,
             Authentication auth){
         log.info("getCommentsByUserId {}", userId);
@@ -87,7 +88,7 @@ public class CommentController {
         }
 
         if(!auth.getName().equals(userId)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ApiResponse.error("해당 사용자만 조회할 수 있습니다"));
 
         }

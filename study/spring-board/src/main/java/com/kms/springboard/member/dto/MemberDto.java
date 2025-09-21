@@ -1,4 +1,5 @@
 package com.kms.springboard.member.dto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -28,6 +29,7 @@ public class MemberDto {
 
     @NotBlank(message = "비밀번호를 입력해주세요")
     @Size(min=3,max=64,message = "비밀번호는 3~64자여야 합니다")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
 }

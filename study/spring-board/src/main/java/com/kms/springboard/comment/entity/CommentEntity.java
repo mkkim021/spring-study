@@ -17,8 +17,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(
-        name = "comments",indexes = {
-                @Index(name = "idx_comments_board_id", columnList = "boardId")
+        name = "comments",
+        indexes = {
+                @Index(name = "idx_comments_board_id", columnList = "boardId"),
+                @Index(name = "idx_comments_user_id", columnList = "userId")
 })
 @Builder
 @Getter
@@ -49,8 +51,14 @@ public class CommentEntity {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void update(String content) {
         this.content = content;
-        this.updatedAt = LocalDateTime.now();
+
     }
 }

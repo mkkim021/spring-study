@@ -64,6 +64,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CommentDto> findByUserId(String userId, Pageable pageable) {
         Page<CommentEntity> commentsByMemberId = commentRepository.findCommentsByUserId(userId, pageable);
         return commentsByMemberId.map(this::convertToDto);
@@ -78,6 +79,7 @@ public class CommentServiceImpl implements CommentService {
                 .writer(entity.getWriter())
                 .boardId(entity.getBoard().getId())
                 .memberId(entity.getMember().getId())
+                .userId(entity.getUserId())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
