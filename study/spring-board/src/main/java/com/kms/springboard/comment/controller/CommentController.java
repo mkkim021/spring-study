@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -98,5 +99,27 @@ public class CommentController {
         return ResponseEntity.ok(ApiResponse.success("해당 유저가 작성한 댓글 조회 성공", commentsByMemberId));
     }
 
+    @PutMapping("/{commentId}")
+    public ResponseEntity<ApiResponse<CommentDto>> updateComment(
+            @RequestBody CommentDto commentDto,
+            @PathVariable Long commentId,
+            Authentication auth) {
+        try {
+            if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("인증이 필요합니다."));
+
+            }
+            CommentDto updated = commentService.updateComment(commentId, commentDto);
+            return ResponseEntity.ok(ApiResponse.success("댓글 수정 완료", updated));
+        } catch (AccessDeniedException e) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponse.error("작성자만 수정할 수 있습니다."));
+        } catch (EntityNotFoundException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("해당 댓글은 존재하지 않습니다"));
+        }
+
+    }
 
 }

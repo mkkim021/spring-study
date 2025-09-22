@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -70,6 +71,23 @@ public class CommentServiceImpl implements CommentService {
         return commentsByMemberId.map(this::convertToDto);
     }
 
+    @Override
+    public CommentDto updateComment(Long commentId, CommentDto commentDto) {
+        CommentEntity commentEntity = commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 댓글이 없습니다."));
+        String writer = commentEntity.getWriter();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth == null||!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            throw new AccessDeniedException("인증이 필요합니다");
+        }
+        if(!auth.getName().equals(writer)) {
+            throw new AccessDeniedException("해당 작성자만 수정할 수 있습니다");
+        }
+
+        commentEntity.update(commentDto.getContent());
+        return convertToDto(commentEntity);
+    }
+
 
     private CommentDto convertToDto(CommentEntity entity) {
 
@@ -84,5 +102,6 @@ public class CommentServiceImpl implements CommentService {
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
+
 
 }
