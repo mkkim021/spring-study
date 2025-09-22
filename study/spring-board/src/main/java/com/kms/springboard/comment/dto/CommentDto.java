@@ -21,8 +21,7 @@ public class CommentDto {
     private String content;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String writer;
-    @NotNull(message = "게시글 ID가 필요합니다")
-    private Long boardId;
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String userId;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
