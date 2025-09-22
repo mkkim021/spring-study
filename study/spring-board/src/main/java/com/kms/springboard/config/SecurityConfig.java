@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/","/api/boards","/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/users/login","/users/register").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/users/login","/api/users/register").permitAll()
                         .anyRequest().authenticated()
                 );
 

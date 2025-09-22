@@ -1,9 +1,6 @@
 package com.kms.springboard.post.service;
 
 
-
-import com.kms.springboard.member.entity.MemberEntity;
-import com.kms.springboard.member.repository.MemberRepository;
 import com.kms.springboard.post.dto.BoardDto;
 import com.kms.springboard.post.entity.BoardEntity;
 import com.kms.springboard.post.repository.BoardRepository;
@@ -19,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
-import java.util.Optional;
+
 
 
 @RequiredArgsConstructor
