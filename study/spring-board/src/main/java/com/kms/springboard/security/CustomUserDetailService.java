@@ -1,4 +1,4 @@
-package com.kms.springboard.config;
+package com.kms.springboard.security;
 
 import com.kms.springboard.member.entity.MemberEntity;
 import com.kms.springboard.member.repository.MemberRepository;

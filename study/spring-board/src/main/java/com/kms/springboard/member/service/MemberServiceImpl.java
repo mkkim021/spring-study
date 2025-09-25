@@ -1,6 +1,6 @@
 package com.kms.springboard.member.service;
 
-import com.kms.springboard.config.JwtTokenProvider;
+import com.kms.springboard.security.jwt.JwtTokenProvider;
 import com.kms.springboard.member.dto.LoginDto;
 import com.kms.springboard.member.dto.MemberDto;
 import com.kms.springboard.member.entity.MemberEntity;
@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 

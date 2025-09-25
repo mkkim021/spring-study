@@ -1,4 +1,4 @@
-package com.kms.springboard.config;
+package com.kms.springboard.security.jwt;
 
 
 import io.jsonwebtoken.Claims;
@@ -7,12 +7,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Base64;
 import java.util.Date;
 @Slf4j
 @Component
@@ -24,20 +24,22 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration-ms}")
     private int jwtExpirationMs;
 
-    public String generateToken(String userId){
-        Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
-        Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
+    private final Key key = getKey();
 
+    public String generate(String subject, Date expiredAt){
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(subject)
                 .setIssuedAt(new Date())
-                .setExpiration(expiryDate)
+                .setExpiration(expiredAt)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 
+
+
+
+
     public String getUserIdFromToken(String token) {
-        Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -45,14 +47,18 @@ public class JwtTokenProvider {
                 .getBody();
         return claims.getSubject();
     }
+
     public boolean validateToken(String token) {
         try{
-            Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         }catch (JwtException | IllegalArgumentException e) {
             log.debug("Invalid JWT token", e);
             return false;
         }
+    }
+    @PostConstruct
+    public Key getKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 }
