@@ -21,11 +21,14 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration-ms}")
-    private int jwtExpirationMs;
 
-    private final Key key = getKey();
 
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    }
     public String generate(String subject, Date expiredAt){
         return Jwts.builder()
                 .setSubject(subject)
@@ -57,8 +60,6 @@ public class JwtTokenProvider {
             return false;
         }
     }
-    @PostConstruct
-    public Key getKey() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
-    }
+
+
 }

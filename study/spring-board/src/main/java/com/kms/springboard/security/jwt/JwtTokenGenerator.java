@@ -1,11 +1,13 @@
 package com.kms.springboard.security.jwt;
 
 import com.kms.springboard.security.jwt.dto.JwtTokenResponse;
+import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,45 +15,41 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenGenerator {
 
     private final JwtTokenProvider jwtTokenProvider;
-    @Value("${jwt.secret}")
-    private String jwtSecret;
 
-    @Value("${jwt.expiration-ms}")
-    private int jwtExpirationMs;
+    @Value("${jwt.access-expiration-ms}")
+    private long accessTokenExpiration;
 
-    private final Key key = getKey();
+    @Value("${jwt.refresh-expiration-ms:604800000}")
+    private long refreshTokenExpiration;
 
-    public JwtTokenGenerator(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
+
+   public JwtTokenResponse generateToken(String userId){
+       Date now = new Date();
+       Date accessTokenExpiryDate = new Date(now.getTime() + accessTokenExpiration);
+       Date refreshTokenExpiryDate = new Date(now.getTime() + refreshTokenExpiration);
+
+       String accessToken = jwtTokenProvider.generate(userId, accessTokenExpiryDate);
+       String refreshToken = jwtTokenProvider.generate(userId, refreshTokenExpiryDate);
+
+       return JwtTokenResponse.of(
+               accessToken,
+               refreshToken,
+               accessTokenExpiration / 1000,
+               "Bearer"
+       );
+   }
+
+    public String generateAccessToken(String userId) {
+       Date now = new Date();
+       Date accessTokenExpiryDate = new Date(now.getTime() + accessTokenExpiration);
+
+       return jwtTokenProvider.generate(userId, accessTokenExpiryDate);
     }
 
 
-    public String generateRefreshToken(String userId){
-        Date refreshTokenExpiration = new Date(System.currentTimeMillis() + jwtExpirationMs * 70);
-        Date accessTokenExpiration = new Date(System.currentTimeMillis() + jwtExpirationMs);
-
-        String accessToken = jwtTokenProvider.generate(userId, accessTokenExpiration);
-        String refreshToken = jwtTokenProvider.generate(userId, refreshTokenExpiration);
-
-        return JwtTokenResponse.of(accessToken, refreshToken)
-    }
-
-    public String generateAccessToken(String userId){
-
-        return Jwts.builder()
-                .setSubject(userId)
-                .claim("type","access_token")
-                .setIssuedAt(new Date())
-                .setExpiration(accessTokenExpiration)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
-    }
-    @PostConstruct
-    public Key getKey() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
-    }
 
 }

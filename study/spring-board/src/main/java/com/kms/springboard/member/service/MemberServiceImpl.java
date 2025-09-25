@@ -1,10 +1,11 @@
 package com.kms.springboard.member.service;
 
-import com.kms.springboard.security.jwt.JwtTokenProvider;
+import com.kms.springboard.security.jwt.JwtTokenGenerator;
 import com.kms.springboard.member.dto.LoginDto;
 import com.kms.springboard.member.dto.MemberDto;
 import com.kms.springboard.member.entity.MemberEntity;
 import com.kms.springboard.member.repository.MemberRepository;
+import com.kms.springboard.security.jwt.dto.JwtTokenResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +23,7 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenGenerator jwtTokenGenerator;
 
     @Override
     public MemberEntity save(MemberEntity member) {
@@ -82,12 +83,13 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional(readOnly = true)
-    public String login(LoginDto loginDto) {
+    public JwtTokenResponse login(LoginDto loginDto) {
         if(!isLogin(loginDto)){
             throw new EntityNotFoundException("아이디 또는 비밀번호가 잘못되었습니다");
         }
         final String normalizedUserId = loginDto.getUserId().trim().toLowerCase(Locale.ROOT);
-        return jwtTokenProvider.generateToken(normalizedUserId);
+        return jwtTokenGenerator.generateToken(normalizedUserId);
     }
+
 
 }
