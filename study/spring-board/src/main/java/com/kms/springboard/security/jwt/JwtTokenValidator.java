@@ -14,6 +14,12 @@ public class JwtTokenValidator {
 
     private final JwtTokenGenerator jwtTokenGenerator;
 
+    /**
+     * Validates a JWT's signature and structure using the configured signing key.
+     *
+     * @param token the JWT string to validate
+     * @return `true` if the token is a valid, correctly signed JWT and can be parsed; `false` otherwise
+     */
     public boolean validate(String token) {
         try{
             Jwts.parserBuilder()

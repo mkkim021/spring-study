@@ -16,6 +16,15 @@ public class JwtTokenResponse {
     private Long expiredIn;
     private String grantType;
 
+    /**
+     * Create a JwtTokenResponse populated with the given tokens and metadata.
+     *
+     * @param accessToken the issued access token
+     * @param refreshToken the issued refresh token
+     * @param expiredIn the expiration duration for the access token
+     * @param grantType the grant type associated with the tokens
+     * @return a JwtTokenResponse containing the provided token values and metadata
+     */
     public static JwtTokenResponse of(String accessToken, String refreshToken, Long expiredIn, String grantType) {
         return new JwtTokenResponse(accessToken, refreshToken, expiredIn, grantType);
     }

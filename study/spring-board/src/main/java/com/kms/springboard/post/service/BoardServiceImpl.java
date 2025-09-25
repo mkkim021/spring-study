@@ -66,7 +66,12 @@ public class BoardServiceImpl implements BoardService {
     }
 
 
-    // Entity -> DTO 변환 메서드
+    /**
+     * Convert a BoardEntity to a BoardDto.
+     *
+     * @param entity the source entity to map
+     * @return a BoardDto with id, title, content, and writer copied from the entity
+     */
     private BoardDto convertToDto(BoardEntity entity) {
         return BoardDto.builder()
                 .id(entity.getId())
@@ -76,6 +81,13 @@ public class BoardServiceImpl implements BoardService {
                 .build();
     }
 
+    /**
+     * Delete the board post with the given id if the current authenticated user is the post's writer.
+     *
+     * @param id the id of the board post to delete
+     * @throws javax.persistence.EntityNotFoundException if no board exists with the given id
+     * @throws org.springframework.security.access.AccessDeniedException if the caller is not authenticated or is not the post's writer
+     */
     @Override
     public void delete(Long id) {
         BoardEntity boardEntity = boardRepository.findById(id)
