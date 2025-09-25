@@ -35,12 +35,12 @@ public class CommentServiceImpl implements CommentService {
 
 
     @Override
-    public CommentDto createComment(CommentDto request) {
+    public CommentDto createComment(Long boardId,CommentDto request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth == null||!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
             throw new AccessDeniedException("인증이 필요합니다");
         }
-        BoardEntity board = boardRepository.findById(request.getBoardId())
+        BoardEntity board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다"));
         MemberEntity member = memberService.findByUserId(auth.getName())
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다"));
@@ -88,6 +88,21 @@ public class CommentServiceImpl implements CommentService {
         return convertToDto(commentEntity);
     }
 
+    @Override
+    public void deleteComment(Long commentId, Authentication auth) {
+        CommentEntity commentEntity = commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 댓글이 존재하지 않습니다"));
+        String writer = auth.getName();
+        if(auth == null||!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            throw new AccessDeniedException("인증이 필요합니다");
+
+        }
+        if(!writer.equals(commentEntity.getWriter())) {
+            throw new AccessDeniedException("해당 작성자만 삭제할 수 있습니다");
+        }
+        commentRepository.delete(commentEntity);
+    }
+
 
     private CommentDto convertToDto(CommentEntity entity) {
 
@@ -95,7 +110,6 @@ public class CommentServiceImpl implements CommentService {
                 .id(entity.getCommentId())
                 .content(entity.getContent())
                 .writer(entity.getWriter())
-                .boardId(entity.getBoard().getId())
                 .memberId(entity.getMember().getId())
                 .userId(entity.getUserId())
                 .createdAt(entity.getCreatedAt())

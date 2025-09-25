@@ -31,14 +31,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@RequestMapping("/api/comments")
+@RequestMapping("/api/boards/{boardId}")
 public class CommentController {
     private final CommentService commentService;
     private final MemberRepository memberRepository;
 
 
-    @PostMapping
+    @PostMapping("/comments")
     public ResponseEntity<ApiResponse<CommentDto>> createComment(
+            @PathVariable Long boardId,
             @Valid @RequestBody CommentDto request,
             Authentication auth) {
         try{
@@ -46,7 +47,7 @@ public class CommentController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponse.error("인증이 필요합니다"));
             }
-            CommentDto savedComment = commentService.createComment(request);
+            CommentDto savedComment = commentService.createComment(boardId,request);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success("댓글 작성 완료",savedComment));
         } catch (EntityNotFoundException e) {
@@ -56,7 +57,7 @@ public class CommentController {
 
     }
 
-    @GetMapping("/boards/{boardId}")
+    @GetMapping("/comments")
     public ResponseEntity<ApiResponse<Page<CommentDto>>> getCommentsByBoardId(
             @PathVariable Long boardId,
             @RequestParam(defaultValue = "0") @PositiveOrZero int page,
@@ -121,5 +122,16 @@ public class CommentController {
         }
 
     }
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long commentId, Authentication auth) {
+        try {
+            commentService.deleteComment(commentId, auth);
+            return ResponseEntity.ok(ApiResponse.success("댓글 삭제 완료", null));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("해당 댓글이 존재하지 않습니다"));
+        }
+    }
+
 
 }
