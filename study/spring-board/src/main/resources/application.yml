@@ -42,7 +42,14 @@ spring:
     show-sql: false
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
+  data:
+    redis:     # redis
+      host: localhost
+      port: 6379
+      connect-timeout: 3000ms
+
 # 🔥 운영환경용 JWT 설정 (환경변수 사용 권장)
 jwt:
   secret: ${JWT_SECRET}  # 환경변수에서 가져오기
   expiration-ms: ${JWT_EXPIRATION:86400000}  # 기본값 24시간
+

@@ -1,4 +1,4 @@
-package com.kms.springboard.security.jwt.dto;
+package com.kms.springboard.auth.dto;
 
 
 import lombok.AllArgsConstructor;

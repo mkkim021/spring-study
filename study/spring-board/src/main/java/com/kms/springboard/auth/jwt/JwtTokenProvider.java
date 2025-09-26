@@ -1,4 +1,4 @@
-package com.kms.springboard.security.jwt;
+package com.kms.springboard.auth.jwt;
 
 
 import io.jsonwebtoken.Claims;
@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 @Slf4j
@@ -21,14 +22,19 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-
-
     private Key key;
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        byte[] secretBytes;
+        try{
+            secretBytes = Decoders.BASE64.decode(jwtSecret);
+        }catch (IllegalArgumentException e){
+            secretBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        }
+        key = Keys.hmacShaKeyFor(secretBytes);
     }
+
     public String generate(String subject, Date expiredAt){
         return Jwts.builder()
                 .setSubject(subject)
@@ -37,10 +43,6 @@ public class JwtTokenProvider {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
-
-
-
-
 
     public String getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()

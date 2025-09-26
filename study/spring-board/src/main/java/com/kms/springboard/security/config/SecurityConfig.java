@@ -1,8 +1,8 @@
-package com.kms.springboard.config;
+package com.kms.springboard.security.config;
 
 
-import com.kms.springboard.security.jwt.JwtAuthenticationFilter;
-import com.kms.springboard.security.jwt.JwtTokenProvider;
+import com.kms.springboard.auth.jwt.JwtAuthenticationFilter;
+import com.kms.springboard.auth.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
