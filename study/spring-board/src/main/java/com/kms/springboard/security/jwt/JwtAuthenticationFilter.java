@@ -1,4 +1,4 @@
-package com.kms.springboard.config;
+package com.kms.springboard.security.jwt;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

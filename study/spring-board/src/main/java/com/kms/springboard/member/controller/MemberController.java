@@ -7,6 +7,11 @@ import com.kms.springboard.member.dto.MemberDto;
 import com.kms.springboard.member.dto.MemberResponseDto;
 import com.kms.springboard.member.entity.MemberEntity;
 import com.kms.springboard.member.service.MemberService;
+import com.kms.springboard.security.jwt.JwtTokenGenerator;
+import com.kms.springboard.security.jwt.JwtTokenProvider;
+import com.kms.springboard.security.jwt.JwtTokenValidator;
+import com.kms.springboard.security.jwt.dto.JwtTokenResponse;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -30,6 +36,9 @@ import java.util.Optional;
 @RequestMapping("/api/users")
 public class MemberController {
     private final MemberService memberService;
+    private final JwtTokenValidator jwtTokenValidator;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenGenerator jwtTokenGenerator;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody MemberDto memberDto){
@@ -45,26 +54,91 @@ public class MemberController {
         }
     }
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginDto loginDto) {
+    public ResponseEntity<ApiResponse<JwtTokenResponse>> login(@Valid @RequestBody LoginDto loginDto) {
         try {
-            String token = memberService.login(loginDto);
-            var jwtCookie = ResponseCookie.from("ACCESS_TOKEN", token)
-                    .httpOnly(true).secure(true).sameSite("Lax").path("/")
+            JwtTokenResponse tokenResponse = memberService.login(loginDto);
+
+            var accessTokenCookie = ResponseCookie.from("ACCESS_TOKEN", tokenResponse.getAccessToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Lax")
+                    .path("/")
                     .maxAge(3600)
                     .build();
-            LoginResponse response = LoginResponse.builder()
-                    .userId(loginDto.getUserId())
+
+            var refreshTokenCookie = ResponseCookie.from("REFRESH_TOKEN", tokenResponse.getRefreshToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(3600 * 24 * 7)
                     .build();
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                    .body(ApiResponse.success("로그인 성공", response));
-        } catch (Exception e) {
-            log.warn("로그인 실패", e);
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                    .body(ApiResponse.success("로그인 성공", tokenResponse));
+        } catch (EntityNotFoundException e) {
+            log.warn("로그인 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("로그인 실패:"));
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("로그인 처리 중 오류 발생했습니다"));
         }
 
 
+    }
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<JwtTokenResponse>>refresh(
+            @CookieValue(value = "REFRESH_TOKEN",required = false)String refreshToken,
+            @RequestBody(required = false)Map<String,String> requestBody){
+        try{
+            String token = refreshToken;
+            if(token == null && requestBody != null){
+                token = requestBody.get("refresh_token");
+            }
+            if(token == null){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("Refresh token이 필요합니다"));
+            }
+
+            if(!jwtTokenValidator.validate(token)){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("유효하지 않은 refresh token입니다"));
+            }
+
+            String userId = jwtTokenProvider.getUserIdFromToken(token);
+            if(userId.startsWith("refresh:")){
+                userId = userId.substring(8);
+            }
+
+            JwtTokenResponse newToken = jwtTokenGenerator.generateToken(userId);
+
+            var accessTokenCookie = ResponseCookie.from("ACCESS_TOKEN", newToken.getAccessToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(3600)
+                    .build();
+
+            var newRefreshTokenCookie = ResponseCookie.from("REFRESH_TOKEN", newToken.getRefreshToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(3600 * 24 * 7)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE,accessTokenCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE,newRefreshTokenCookie.toString())
+                    .build();
+        }catch (Exception e){
+            log.error("토큰 갱신 중 오류 발생",e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("토큰 갱신에 실패했습니다"));
+        }
     }
 
     @GetMapping("/{userId}")

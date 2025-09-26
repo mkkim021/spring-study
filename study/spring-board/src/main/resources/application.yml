@@ -22,7 +22,8 @@ spring:
 # 🔥 JWT 설정 추가
 jwt:
   secret: "MyVerySecureJWTSecretKeyForDevelopmentThatIsAtLeast32BytesLongToMeetSecurityRequirements123456789"
-  expiration-ms: 86400000  # 24시간 (밀리초)
+  access-expiration-ms: 86400000  # 24시간 (밀리초)
+  refresh-expiration-ms: 604800000
 
 ---
 spring:

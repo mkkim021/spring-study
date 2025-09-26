@@ -76,11 +76,6 @@ public class BoardServiceImpl implements BoardService {
                 .build();
     }
 
-
-
-
-
-
     @Override
     public void delete(Long id) {
         BoardEntity boardEntity = boardRepository.findById(id)
@@ -117,6 +112,7 @@ public class BoardServiceImpl implements BoardService {
         boardEntity.update(updateBoardDto.getTitle(), updateBoardDto.getContent());
 
     }
+
 
 
 

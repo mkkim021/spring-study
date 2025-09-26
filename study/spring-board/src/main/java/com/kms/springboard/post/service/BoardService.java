@@ -12,5 +12,6 @@ public interface BoardService {
     Page<BoardDto> findAll(Pageable pageable);
     BoardDto findById(Long id);
     void delete(Long id);
-    void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPassword)throws AccessDeniedException;
+
+    void updateWithPassword(Long boardId, BoardDto updateBoardDto, String rawPassword) throws AccessDeniedException;
 }
