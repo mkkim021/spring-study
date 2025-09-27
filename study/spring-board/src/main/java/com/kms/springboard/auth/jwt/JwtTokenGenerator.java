@@ -1,17 +1,10 @@
-package com.kms.springboard.security.jwt;
+package com.kms.springboard.auth.jwt;
 
-import com.kms.springboard.security.jwt.dto.JwtTokenResponse;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
+import com.kms.springboard.auth.dto.JwtTokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
 import java.util.Date;
 
 @Component
@@ -27,7 +20,7 @@ public class JwtTokenGenerator {
     private long refreshTokenExpiration;
 
 
-   public JwtTokenResponse generateToken(String userId){
+   public JwtTokenResponse generateToken(String userId) {
        Date now = new Date();
        Date accessTokenExpiryDate = new Date(now.getTime() + accessTokenExpiration);
        Date refreshTokenExpiryDate = new Date(now.getTime() + refreshTokenExpiration);
@@ -38,18 +31,9 @@ public class JwtTokenGenerator {
        return JwtTokenResponse.of(
                accessToken,
                refreshToken,
-               accessTokenExpiration / 1000,
+               accessTokenExpiration/1000L,
                "Bearer"
        );
    }
-
-    public String generateAccessToken(String userId) {
-       Date now = new Date();
-       Date accessTokenExpiryDate = new Date(now.getTime() + accessTokenExpiration);
-
-       return jwtTokenProvider.generate(userId, accessTokenExpiryDate);
-    }
-
-
 
 }
