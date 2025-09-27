@@ -31,7 +31,7 @@ public class JwtTokenGenerator {
        return JwtTokenResponse.of(
                accessToken,
                refreshToken,
-               accessTokenExpiration,
+               accessTokenExpiration/1000L,
                "Bearer"
        );
    }

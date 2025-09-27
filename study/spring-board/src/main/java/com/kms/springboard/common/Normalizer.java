@@ -1,8 +1,6 @@
 package com.kms.springboard.common;
 
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -12,6 +10,13 @@ import java.util.Locale;
 public class Normalizer {
 
     public String normalize(String user) {
-        return user==null ? "" : user.trim().toLowerCase(Locale.ROOT);
+        if (user == null) {
+            throw new IllegalArgumentException("정규화할 문자열이 null입니다");
+        }
+        var trimmeed = user.trim();
+        if(trimmeed.isEmpty()) {
+            throw new IllegalArgumentException("정규화할 문자열이 비어 있습니다");
+        }
+        return trimmeed.toLowerCase(Locale.ROOT);
     }
 }

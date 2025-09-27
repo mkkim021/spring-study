@@ -1,4 +1,4 @@
-package com.kms.springboard.security.config;
+package com.kms.springboard.config;
 
 
 import com.kms.springboard.auth.jwt.JwtAuthenticationFilter;
