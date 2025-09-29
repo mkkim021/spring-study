@@ -18,7 +18,7 @@ public class RedisTokenService implements TokenService {
     @Value("${jwt.refresh-expiration-ms}")
     private long refreshExpirationMs;
 
-    @Value("${jwt.accsss-expiration-ms}")
+    @Value("${jwt.access-expiration-ms}")
     private long accessExpirationMs;
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";

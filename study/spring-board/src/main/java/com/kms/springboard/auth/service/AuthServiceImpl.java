@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public JwtTokenResponse refreshToken(String refreshToken) {
         if(!StringUtils.hasText(refreshToken)) {
-            throw new BadCredentialsException("Refresh token이 필요합니다")
+            throw new BadCredentialsException("Refresh token이 필요합니다");
         }
         if(!jwtTokenValidator.validate(refreshToken)) {
             throw new BadCredentialsException("유효하지 않은 refresh token입니다");
@@ -95,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
                 log.warn("Access token 처리 중 오류 발생: {}", e.getMessage());
             }
         }
-
+        log.info("Logout attempt for user: {}", userId);
         if(StringUtils.hasText(refreshToken) && userId != null) {
             tokenService.deleteRefreshToken(userId);
             log.debug("Refresh token 삭제 완료");
@@ -113,7 +113,7 @@ public class AuthServiceImpl implements AuthService {
         Cookie cookie = new Cookie("REFRESH_TOKEN", refreshToken);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
         cookie.setMaxAge(7 * 24 * 60 * 60);
 
         response.addCookie(cookie);

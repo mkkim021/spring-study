@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/api/boards","/auth/**").permitAll()
+                        .requestMatchers("/","/api/boards","/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/users/login","/api/users/register").permitAll()
                         .anyRequest().authenticated()
                 );
@@ -45,4 +45,5 @@ public class SecurityConfig {
     JwtAuthenticationFilter jwtAuthenticationFilter(){
         return new JwtAuthenticationFilter(jwtTokenProvider);
     }
+
 }

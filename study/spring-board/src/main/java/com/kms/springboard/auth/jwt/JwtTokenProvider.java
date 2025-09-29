@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+
 @Slf4j
 @Component
 public class JwtTokenProvider {
@@ -26,6 +27,8 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
+        log.info("jwt secret: {}", jwtSecret);
+
         byte[] secretBytes;
         try{
             secretBytes = Decoders.BASE64.decode(jwtSecret);
