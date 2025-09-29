@@ -4,6 +4,8 @@ spring:
 
 ---
 spring:
+  main:
+    allow-bean-definition-overriding: true
   config:
     activate:
       on-profile: local
@@ -19,6 +21,13 @@ spring:
     show-sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      connect-timeout: 3000ms
+      timeout: 3000ms
+
 # 🔥 JWT 설정 추가
 jwt:
   secret: "MyVerySecureJWTSecretKeyForDevelopmentThatIsAtLeast32BytesLongToMeetSecurityRequirements123456789"
@@ -27,6 +36,8 @@ jwt:
 
 ---
 spring:
+  main:
+    allow-bean-definition-overriding: true
   config:
     activate:
       on-profile: prod
@@ -42,7 +53,23 @@ spring:
     show-sql: false
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
+  data:
+    redis:     # redis
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+      connect-timeout: 3000ms
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+
+
 # 🔥 운영환경용 JWT 설정 (환경변수 사용 권장)
 jwt:
   secret: ${JWT_SECRET}  # 환경변수에서 가져오기
-  expiration-ms: ${JWT_EXPIRATION:86400000}  # 기본값 24시간
+  access-expiration-ms: ${JWT_EXPIRATION:86400000}  # 기본값 24시간
+  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION:604800000}
+

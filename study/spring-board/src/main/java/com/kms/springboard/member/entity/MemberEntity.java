@@ -39,21 +39,9 @@ public class MemberEntity {
     @Column(name = "email" ,nullable = false, length = 255)
     private String email;
 
-    @PrePersist @PreUpdate
-    private void normalize(){
-        if(this.userId != null) this.userId = this.userId.trim().toLowerCase(Locale.ROOT);
-        if(this.email != null) this.email = this.email.trim().toLowerCase(Locale.ROOT);
-        if(this.username != null) this.username = this.username.trim();
-    }
 
-    public MemberDto convertToDto() {
-        return MemberDto.builder()
-                .userId(this.userId)
-                .username(this.username)
-                .email(this.email)
-                .build();
 
-    }
+
 
 
 }
