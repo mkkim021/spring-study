@@ -27,8 +27,6 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        log.info("jwt secret: {}", jwtSecret);
-
         byte[] secretBytes;
         try{
             secretBytes = Decoders.BASE64.decode(jwtSecret);
@@ -61,7 +59,7 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         }catch (JwtException | IllegalArgumentException e) {
-            log.debug("Invalid JWT token", e);
+            log.debug("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }

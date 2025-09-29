@@ -89,22 +89,53 @@ public class AuthServiceImpl implements AuthService {
 
             try{
                 userId = jwtTokenProvider.getUserIdFromToken(accessToken);
-                tokenService.addToBlacklist(accessToken);
-                log.debug("Access token 블랙리스트 추가 완료");
-            }catch(Exception e){
-                log.warn("Access token 처리 중 오류 발생: {}", e.getMessage());
+
+                if (userId != null) {
+                    boolean isValid = jwtTokenProvider.validateToken(accessToken);
+
+                    if(isValid) {
+                        tokenService.addToBlacklist(accessToken);
+                        log.info("Valid access token added to blacklist: {}", userId);
+                    }else{
+                        log.info("Invalid access token: {}", accessToken);
+                    }
+                }
+
+            }catch (Exception e) {
+                log.error("Failed to process access token during logout_1.", e);
             }
         }
-        log.info("Logout attempt for user: {}", userId);
-        if(StringUtils.hasText(refreshToken) && userId != null) {
-            tokenService.deleteRefreshToken(userId);
-            log.debug("Refresh token 삭제 완료");
+
+        if(userId == null && StringUtils.hasText(refreshToken)) {
+            try {
+                userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+                if (userId != null) {
+                    log.info("userId extracted from refresh token: {}", userId);
+                }
+            }catch (Exception e) {
+                log.error("Failed to process refresh token during logout_2.", e);
+            }
+        }
+
+
+        if(userId != null && StringUtils.hasText(refreshToken)) {
+            try {
+                tokenService.deleteRefreshToken(userId);
+                log.info("Refresh token deleted: {}", userId);
+            }catch (Exception e) {
+                log.error("Failed to process refresh token during logout_3.", e);
+            }
+        }else if(StringUtils.hasText(refreshToken)) {
+            log.warn("Could not determine refresh token may remain in storage");
+
         }
 
         clearRefreshTokenCookie(response);
 
         if(userId != null) {
-            log.info("사용자 로그안웃 완료: {}", userId);
+            log.info("User logout completed ID: {}", userId);
+        }else{
+            log.info("Anonymous logout completed (token cleanup only");
         }
     }
 

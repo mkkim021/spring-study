@@ -22,7 +22,7 @@ public class RedisTokenService implements TokenService {
     private long accessExpirationMs;
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
-    private static final String BLACKLIST_PREFIX = "blacklist";
+    private static final String BLACKLIST_PREFIX = "blacklist:";
 
     @Override
     public void saveRefreshToken(String userId, String refreshToken) {
@@ -51,8 +51,8 @@ public class RedisTokenService implements TokenService {
     @Override
     public void addToBlacklist(String accessToken) {
         String key = BLACKLIST_PREFIX + accessToken;
-        Duration expriation = Duration.ofMillis(accessExpirationMs);
-        stringRedisTemplate.opsForValue().set(key, "blacklist", expriation);
+        Duration expiration = Duration.ofMillis(accessExpirationMs);
+        stringRedisTemplate.opsForValue().set(key, "blacklist", expiration);
         log.debug("Redis: 블랙리스트 추가");
     }
 
