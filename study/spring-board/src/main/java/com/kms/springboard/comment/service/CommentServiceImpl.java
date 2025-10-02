@@ -34,6 +34,7 @@ public class CommentServiceImpl implements CommentService {
     private final MemberService memberService;
 
 
+
     @Override
     public CommentDto createComment(Long boardId,CommentDto request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
