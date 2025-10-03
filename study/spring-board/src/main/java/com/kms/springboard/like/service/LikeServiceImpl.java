@@ -32,6 +32,7 @@ public class LikeServiceImpl implements LikeService {
     private static final String LIKE_COUNT_PREFIX = "board:like:count:";
     private static final String USER_LIKED_PREFIX = "board:like:user:";
     private static final Duration CACHE_TTL = Duration.ofHours(24);
+    private final LikeService likeService;
 
     @Override
     public boolean toggleLike(Long boardId, String userId) {
@@ -64,7 +65,7 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     public boolean isLikeByUserId(Long boardId, String userId) {
-        String cacheKey = USER_LIKED_PREFIX + boardId;
+        String cacheKey = USER_LIKED_PREFIX + boardId + ":" + userId;
         String cached = redisTemplate.opsForValue().get(cacheKey);
 
         if(cached != null) {
@@ -85,7 +86,8 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     public Page<LikeDto> getUserLikeBoards(String userId, Pageable pageable) {
-        return null;
+        Page<LikeEntity> likes = likeRepository.findByUserId(userId,pageable);
+        return likes.map(LikeDto::convertToDto);
     }
     private void addLike(Long boardId, String userId) {
         BoardEntity board = boardRepository.findById(boardId)

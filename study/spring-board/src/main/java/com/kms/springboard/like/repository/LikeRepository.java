@@ -15,10 +15,10 @@ public interface LikeRepository extends JpaRepository<LikeEntity, Long> {
     Page<LikeEntity> findByBoardId(Long boardId, Pageable pageable);
 
     @Query("SELECT l FROM LikeEntity l WHERE l.userId = :userId ORDER BY l.createdAt DESC")
-    Page<LikeEntity> findByUserId(Long userId, Pageable pageable);
+    Page<LikeEntity> findByUserId(String userId, Pageable pageable);
 
     @Modifying
-    @Query("DELETE FROM LikeEntity l WHERE l.board.id = :boarId AND l.userId = :userId")
+    @Query("DELETE FROM LikeEntity l WHERE l.board.id = :boardId AND l.userId = :userId")
     void deleteByBoardIDAndUserId(Long boardId, String userId);
 
     @Query("SELECT COUNT(l) FROM LikeEntity l WHERE l.board.id = :boardId")
