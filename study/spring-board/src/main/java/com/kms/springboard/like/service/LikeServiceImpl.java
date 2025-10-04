@@ -32,7 +32,7 @@ public class LikeServiceImpl implements LikeService {
     private static final String LIKE_COUNT_PREFIX = "board:like:count:";
     private static final String USER_LIKED_PREFIX = "board:like:user:";
     private static final Duration CACHE_TTL = Duration.ofHours(24);
-    private final LikeService likeService;
+
 
     @Override
     public boolean toggleLike(Long boardId, String userId) {
