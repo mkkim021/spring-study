@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
 
-        if(userId != null && StringUtils.hasText(refreshToken)) {
+        if(userId != null) {
             try {
                 tokenService.deleteRefreshToken(userId);
                 log.info("Refresh token deleted: {}", userId);
