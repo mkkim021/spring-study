@@ -36,7 +36,6 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     public boolean toggleLike(Long boardId, String userId) {
-
         boolean exists = likeRepository.existsByBoardIdAndUserId(boardId, userId);
 
         if (exists) {
@@ -64,20 +63,6 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public boolean isLikeByUserId(Long boardId, String userId) {
-        String cacheKey = USER_LIKED_PREFIX + boardId + ":" + userId;
-        String cached = redisTemplate.opsForValue().get(cacheKey);
-
-        if(cached != null) {
-            return Boolean.parseBoolean(cached);
-        }
-        boolean isLiked = likeRepository.existsByBoardIdAndUserId(boardId, userId);
-        cacheUserLiked(boardId,userId,isLiked);
-
-        return isLiked;
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public Page<LikeDto> getLikeUsers(Long boardId, Pageable pageable) {
         Page<LikeEntity> likes = likeRepository.findByBoardId(boardId,pageable);
@@ -89,6 +74,7 @@ public class LikeServiceImpl implements LikeService {
         Page<LikeEntity> likes = likeRepository.findByUserId(userId,pageable);
         return likes.map(LikeDto::convertToDto);
     }
+
     private void addLike(Long boardId, String userId) {
         BoardEntity board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다"));
