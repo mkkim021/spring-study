@@ -36,6 +36,7 @@ public class MemberServiceImpl implements MemberService {
         MemberEntity member = MemberEntity.builder()
                 .userId(normalizedUserId)
                 .username(memberDto.getUsername())
+                .nickname(memberDto.getNickname())
                 .email(normalizedEmail)
                 .password(encoded)
                 .build();

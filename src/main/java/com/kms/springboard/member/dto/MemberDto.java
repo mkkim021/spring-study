@@ -22,6 +22,9 @@ public class MemberDto {
     @NotBlank(message = "이름을 입력해주세요")
     private String username;
 
+    @NotBlank(message = "닉네임을 입력해주세요")
+    private String nickname;
+
     @NotBlank(message = "이메일을 입력해주세요")
     @Email(message = "이메일 형식이 올바르지 않습니다")
     @Size(max = 255, message = "이메일은 255자 이하여야 합니다")

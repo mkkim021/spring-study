@@ -24,13 +24,13 @@ import java.util.Locale;
 public class MemberEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "memberId")
+    @Column(name = "member_id")
     private Long id;
 
     @Column(name = "username", nullable = false, length = 100)
     private String username;
 
-    @Column(name = "userId", nullable = false, length = 50)
+    @Column(name = "user_id", nullable = false, length = 50)
     private String userId;
 
     @Column(name = "password", nullable = false)
@@ -38,6 +38,9 @@ public class MemberEntity {
 
     @Column(name = "email" ,nullable = false, length = 255)
     private String email;
+
+    @Column(name = "nickname",nullable = false, unique = true)
+    private String nickname;
 
 
 
